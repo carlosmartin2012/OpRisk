@@ -1,3 +1,4 @@
+
 export enum ViewState {
   LOGIN = 'LOGIN',
   DASHBOARD = 'DASHBOARD',
@@ -11,10 +12,16 @@ export enum ViewState {
 
 export type Language = 'EN' | 'ES';
 
+export type UserRole = 'OpRisk' | 'First Line' | 'Auditor';
+
 export interface User {
+  id: string;
   email: string;
   name: string;
-  role: 'Admin' | 'Risk Manager' | 'Auditor';
+  role: UserRole;
+  department: string;
+  lastLogin: string;
+  status: 'Active' | 'Inactive';
 }
 
 export interface AuditLog {
@@ -32,6 +39,7 @@ export interface OpEvent {
   title: string;
   description: string;
   employeeEmail: string;
+  department: string; // Added field
   amount: number;
   currency: string;
   eventType: string; // EBA Level 1

@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { 
   BarChart, 
   Bar, 
@@ -14,7 +15,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { TrendingUp, AlertOctagon, CheckCircle, DollarSign, Calculator } from 'lucide-react';
+import { TrendingUp, AlertOctagon, CheckCircle, DollarSign, Calculator, Settings, Filter, X } from 'lucide-react';
 import { BUSINESS_LINES } from '../types';
 
 const dataLossTrend = [
@@ -57,19 +58,77 @@ const StatCard = ({ title, value, trend, icon: Icon, color }: any) => (
 );
 
 const Dashboard: React.FC = () => {
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Customization State
+  const [criticalThreshold, setCriticalThreshold] = useState(10000);
+  const [targetRCSA, setTargetRCSA] = useState(90);
+  
+  // Fake filtered data logic
+  const criticalIncidentsCount = 14 + (criticalThreshold < 5000 ? 5 : 0) - (criticalThreshold > 20000 ? 5 : 0);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       <div className="flex flex-col md:flex-row md:items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Executive Overview</h2>
           <p className="text-slate-500 dark:text-slate-400 mt-1">Operational Risk Posture & Capital Consumption</p>
         </div>
         <div className="mt-4 md:mt-0 flex space-x-3">
+           <button 
+             onClick={() => setShowSettings(!showSettings)}
+             className="px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors flex items-center"
+           >
+             <Settings className="w-4 h-4 mr-2" /> Customize View
+           </button>
            <button className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-cyan-500/25">
              Generate Report
            </button>
         </div>
       </div>
+
+      {/* Settings Panel */}
+      {showSettings && (
+          <div className="bg-slate-100 dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-white/10 animate-in slide-in-from-top-2">
+              <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-bold text-slate-800 dark:text-white flex items-center"><Filter className="w-4 h-4 mr-2"/> Dashboard Configuration</h3>
+                  <button onClick={() => setShowSettings(false)}><X className="w-4 h-4 text-slate-500"/></button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                      <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                          Critical Incident Threshold (€)
+                      </label>
+                      <div className="flex items-center gap-4">
+                          <input 
+                            type="range" 
+                            min="1000" max="50000" step="1000"
+                            value={criticalThreshold} 
+                            onChange={(e) => setCriticalThreshold(Number(e.target.value))}
+                            className="w-full h-2 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                          />
+                          <span className="text-sm font-mono font-bold w-20 text-right">€{criticalThreshold/1000}k</span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">Incidents above this amount are flagged as Critical.</p>
+                  </div>
+                  <div>
+                      <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                          Target RCSA Completion (%)
+                      </label>
+                       <div className="flex items-center gap-4">
+                          <input 
+                            type="range" 
+                            min="50" max="100" step="5"
+                            value={targetRCSA} 
+                            onChange={(e) => setTargetRCSA(Number(e.target.value))}
+                            className="w-full h-2 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                          />
+                          <span className="text-sm font-mono font-bold w-20 text-right">{targetRCSA}%</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
@@ -80,8 +139,8 @@ const Dashboard: React.FC = () => {
           color="bg-red-500 text-red-500" 
         />
         <StatCard 
-          title="Critical Incidents" 
-          value="14" 
+          title={`Critical Incidents (>€${criticalThreshold/1000}k)`} 
+          value={criticalIncidentsCount} 
           trend="-2" 
           icon={AlertOctagon} 
           color="bg-orange-500 text-orange-500" 
@@ -89,9 +148,9 @@ const Dashboard: React.FC = () => {
         <StatCard 
           title="RCSA Completion" 
           value="87%" 
-          trend="+5%" 
+          trend={87 >= targetRCSA ? "On Track" : "Lagging"} 
           icon={CheckCircle} 
-          color="bg-emerald-500 text-emerald-500" 
+          color={87 >= targetRCSA ? "bg-emerald-500 text-emerald-500" : "bg-yellow-500 text-yellow-500"} 
         />
         <StatCard 
           title="Capital (SMA)" 
@@ -154,34 +213,6 @@ const Dashboard: React.FC = () => {
             </ResponsiveContainer>
           </div>
         </div>
-      </div>
-      
-      <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-white/5 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-white">Top 5 Critical Risks</h3>
-          <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                  <thead>
-                      <tr className="text-slate-400 text-sm border-b border-slate-200 dark:border-white/10">
-                          <th className="py-3 px-4">Risk ID</th>
-                          <th className="py-3 px-4">Description</th>
-                          <th className="py-3 px-4">Business Line</th>
-                          <th className="py-3 px-4 text-center">Inherent</th>
-                          <th className="py-3 px-4 text-center">Residual</th>
-                      </tr>
-                  </thead>
-                  <tbody className="text-slate-600 dark:text-slate-300">
-                      {[1,2,3,4,5].map((i) => (
-                          <tr key={i} className="border-b border-slate-200 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                              <td className="py-3 px-4 font-mono text-xs">R-2023-00{i}</td>
-                              <td className="py-3 px-4">Potential failure in {BUSINESS_LINES[i % BUSINESS_LINES.length]} reconciliation process.</td>
-                              <td className="py-3 px-4 text-sm">{BUSINESS_LINES[i % BUSINESS_LINES.length]}</td>
-                              <td className="py-3 px-4 text-center"><span className="px-2 py-1 rounded bg-red-500/20 text-red-500 text-xs font-bold">High</span></td>
-                              <td className="py-3 px-4 text-center"><span className="px-2 py-1 rounded bg-orange-500/20 text-orange-500 text-xs font-bold">Medium</span></td>
-                          </tr>
-                      ))}
-                  </tbody>
-              </table>
-          </div>
       </div>
     </div>
   );

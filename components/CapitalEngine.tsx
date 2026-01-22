@@ -1,8 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Calculator, RefreshCw, Save, Info } from 'lucide-react';
-import { FinancialData } from '../types';
 
-const CapitalEngine: React.FC = () => {
+import React, { useState, useEffect } from 'react';
+import { Calculator, RefreshCw, Save, Info, Lock } from 'lucide-react';
+import { FinancialData, User } from '../types';
+
+interface CapitalEngineProps {
+    user?: User | null;
+}
+
+const CapitalEngine: React.FC<CapitalEngineProps> = ({ user }) => {
+  const isOpRisk = user?.role === 'OpRisk';
+
   const [financials, setFinancials] = useState<FinancialData>({
     interestIncome: 1500,
     interestExpense: 900,
@@ -92,14 +99,23 @@ const CapitalEngine: React.FC = () => {
 
   return (
     <div className="space-y-6">
-       <div>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Capital Engine</h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Basel III Standardized Measurement Approach (SMA) Calculator</p>
+       <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Capital Engine</h2>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">Basel III Standardized Measurement Approach (SMA) Calculator</p>
+          </div>
+          {!isOpRisk && (
+              <div className="flex items-center text-orange-500 bg-orange-500/10 px-3 py-1 rounded-full text-xs font-bold">
+                  <Lock className="w-3 h-3 mr-1" /> Read Only View
+              </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Input Form */}
-            <div className="lg:col-span-1 bg-white dark:bg-slate-800/50 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm h-fit">
+            <div className="lg:col-span-1 bg-white dark:bg-slate-800/50 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm h-fit relative">
+                {!isOpRisk && <div className="absolute inset-0 z-10 bg-white/10 dark:bg-black/10 cursor-not-allowed"></div>}
+                
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center">
                     <Calculator className="w-5 h-5 mr-2 text-brand-brown dark:text-orange-400" />
                     Financial Inputs (Millions)
@@ -171,9 +187,11 @@ const CapitalEngine: React.FC = () => {
                     </div>
                     
                     <div className="flex space-x-4">
-                        <button className="flex items-center px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors border border-white/10">
-                            <Save className="w-4 h-4 mr-2" /> Save Simulation
-                        </button>
+                        {isOpRisk && (
+                            <button className="flex items-center px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors border border-white/10">
+                                <Save className="w-4 h-4 mr-2" /> Save Simulation
+                            </button>
+                        )}
                         <button className="flex items-center px-4 py-2 bg-brand-brown hover:bg-orange-800 text-white rounded-lg text-sm transition-colors shadow-lg shadow-black/20">
                             Generate Report
                         </button>

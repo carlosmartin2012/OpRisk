@@ -1,12 +1,11 @@
+
 import React, { useState } from 'react';
-import { ShieldCheck, ArrowRight, Lock } from 'lucide-react';
-import { User } from '../types';
+import { ArrowRight, Lock, Briefcase, UserCheck, Eye } from 'lucide-react';
+import { User, UserRole } from '../types';
 
 interface LoginProps {
   onLogin: (user: User) => void;
 }
-
-const ALLOWED_EMAIL = 'carlos.martin@nfq.es';
 
 // Reusing the SVG Logo component logic for the Login screen
 const AlquidLogo = () => (
@@ -30,6 +29,7 @@ const AlquidLogo = () => (
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
+  const [selectedRole, setSelectedRole] = useState<UserRole>('OpRisk');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -40,14 +40,20 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     // Simulate network delay
     setTimeout(() => {
-        if (email.toLowerCase() === ALLOWED_EMAIL.toLowerCase()) {
+        if (email.toLowerCase().endsWith('@nfq.es')) {
+            const name = email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+            
             onLogin({
+                id: `U-${Date.now()}`,
                 email: email,
-                name: 'Carlos Martín',
-                role: 'Admin'
+                name: name,
+                role: selectedRole,
+                department: selectedRole === 'OpRisk' ? 'Risk Dept' : selectedRole === 'Auditor' ? 'Internal Audit' : 'Business Line',
+                lastLogin: new Date().toISOString(),
+                status: 'Active'
             });
         } else {
-            setError('Unauthorized access. Please contact the administrator.');
+            setError('Access restricted to NFQ employees (@nfq.es)');
             setLoading(false);
         }
     }, 800);
@@ -75,9 +81,40 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@company.com"
+                    placeholder="name@nfq.es"
                     className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition-all"
                 />
+            </div>
+
+            {/* Role Selector for Demo Purposes */}
+            <div>
+                 <label className="block text-sm font-medium text-slate-300 mb-1.5">Select Profile (Demo)</label>
+                 <div className="grid grid-cols-3 gap-2">
+                     <button
+                        type="button"
+                        onClick={() => setSelectedRole('OpRisk')}
+                        className={`p-2 rounded-lg border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${selectedRole === 'OpRisk' ? 'bg-brand-brown border-brand-brown text-white' : 'bg-slate-900/50 border-white/10 text-slate-400 hover:bg-white/5'}`}
+                     >
+                         <UserCheck className="w-4 h-4" />
+                         OpRisk
+                     </button>
+                     <button
+                        type="button"
+                        onClick={() => setSelectedRole('First Line')}
+                        className={`p-2 rounded-lg border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${selectedRole === 'First Line' ? 'bg-brand-brown border-brand-brown text-white' : 'bg-slate-900/50 border-white/10 text-slate-400 hover:bg-white/5'}`}
+                     >
+                         <Briefcase className="w-4 h-4" />
+                         1st Line
+                     </button>
+                     <button
+                        type="button"
+                        onClick={() => setSelectedRole('Auditor')}
+                        className={`p-2 rounded-lg border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${selectedRole === 'Auditor' ? 'bg-brand-brown border-brand-brown text-white' : 'bg-slate-900/50 border-white/10 text-slate-400 hover:bg-white/5'}`}
+                     >
+                         <Eye className="w-4 h-4" />
+                         Auditor
+                     </button>
+                 </div>
             </div>
 
             {error && (
@@ -94,7 +131,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             >
                 {loading ? 'Authenticating...' : (
                     <>
-                        Sign In with Email <ArrowRight className="w-4 h-4 ml-2" />
+                        Sign In <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                 )}
             </button>

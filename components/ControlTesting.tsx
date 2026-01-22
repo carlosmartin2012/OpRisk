@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { Control, Language, TRANSLATIONS, User } from '../types';
-import { CheckCircle, XCircle, Upload, FileText, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, Upload, FileText, Clock, Lock } from 'lucide-react';
 
 interface ControlTestingProps {
     language: Language;
@@ -10,6 +11,10 @@ interface ControlTestingProps {
 const ControlTesting: React.FC<ControlTestingProps> = ({ language, user }) => {
     const t = TRANSLATIONS[language];
     
+    // Permissions
+    const canUpload = user?.role === 'First Line' || user?.role === 'OpRisk';
+    const canValidate = user?.role === 'OpRisk';
+
     // Mock Data
     const [controls, setControls] = useState<Control[]>([
         { id: 'CTRL-01', riskId: 'R-001', description: 'Dual authentication for new card creation', type: 'Preventive', frequency: 'Daily', status: 'Pending', owner: 'Sec Team' },
@@ -18,17 +23,17 @@ const ControlTesting: React.FC<ControlTestingProps> = ({ language, user }) => {
     ]);
 
     const handleUpload = (id: string) => {
-        // Simulate upload (1st Line)
+        if (!canUpload) return;
         setControls(controls.map(c => c.id === id ? { ...c, status: 'Tested', evidence: `evidence_${Date.now()}.pdf`, lastTested: new Date().toISOString().split('T')[0] } : c));
     };
 
     const handleValidate = (id: string) => {
-        // OpRisk Approval (2nd Line)
+        if (!canValidate) return;
         setControls(controls.map(c => c.id === id ? { ...c, status: 'Validated' } : c));
     };
 
     const handleReject = (id: string) => {
-        // OpRisk Rejection (2nd Line)
+        if (!canValidate) return;
         setControls(controls.map(c => c.id === id ? { ...c, status: 'Non Validated' } : c));
     };
 
@@ -47,6 +52,16 @@ const ControlTesting: React.FC<ControlTestingProps> = ({ language, user }) => {
             <div>
                 <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t.controlTesting}</h2>
                 <p className="text-slate-500 dark:text-slate-400 mt-1">First Line Testing & Second Line Validation</p>
+                {!canValidate && user?.role === 'First Line' && (
+                     <div className="inline-block mt-2 px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                         View: First Line (Testing allowed)
+                     </div>
+                )}
+                {user?.role === 'Auditor' && (
+                     <div className="inline-block mt-2 px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                         View: Auditor (Read Only)
+                     </div>
+                )}
             </div>
 
             <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
@@ -87,33 +102,41 @@ const ControlTesting: React.FC<ControlTestingProps> = ({ language, user }) => {
                                     <div className="flex justify-center space-x-2">
                                         {/* 1st Line Action: Upload */}
                                         {ctrl.status === 'Pending' && (
-                                            <button 
-                                                onClick={() => handleUpload(ctrl.id)}
-                                                className="px-3 py-1.5 rounded bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 text-xs font-bold flex items-center"
-                                                title={t.evidence}
-                                            >
-                                                <Upload className="w-3 h-3 mr-1" /> Evidence
-                                            </button>
+                                            canUpload ? (
+                                                <button 
+                                                    onClick={() => handleUpload(ctrl.id)}
+                                                    className="px-3 py-1.5 rounded bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 text-xs font-bold flex items-center"
+                                                    title={t.evidence}
+                                                >
+                                                    <Upload className="w-3 h-3 mr-1" /> Evidence
+                                                </button>
+                                            ) : (
+                                                <Lock className="w-4 h-4 text-slate-300" />
+                                            )
                                         )}
                                         
                                         {/* 2nd Line Action: Validate (Only if tested) */}
                                         {ctrl.status === 'Tested' && (
-                                            <>
-                                                <button 
-                                                    onClick={() => handleValidate(ctrl.id)}
-                                                    className="p-1.5 rounded bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
-                                                    title={t.validate}
-                                                >
-                                                    <CheckCircle className="w-4 h-4" />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleReject(ctrl.id)}
-                                                    className="p-1.5 rounded bg-red-500/10 text-red-600 hover:bg-red-500/20"
-                                                    title={t.reject}
-                                                >
-                                                    <XCircle className="w-4 h-4" />
-                                                </button>
-                                            </>
+                                            canValidate ? (
+                                                <>
+                                                    <button 
+                                                        onClick={() => handleValidate(ctrl.id)}
+                                                        className="p-1.5 rounded bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
+                                                        title={t.validate}
+                                                    >
+                                                        <CheckCircle className="w-4 h-4" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleReject(ctrl.id)}
+                                                        className="p-1.5 rounded bg-red-500/10 text-red-600 hover:bg-red-500/20"
+                                                        title={t.reject}
+                                                    >
+                                                        <XCircle className="w-4 h-4" />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                 <span className="text-xs text-slate-400 flex items-center"><Lock className="w-3 h-3 mr-1" /> Pending Val.</span>
+                                            )
                                         )}
                                     </div>
                                 </td>

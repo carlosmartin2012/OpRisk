@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Upload, MoreVertical, CheckCircle, XCircle, Edit, Save, X } from 'lucide-react';
+import { Plus, Search, Filter, Upload, MoreVertical, CheckCircle, XCircle, Edit, Save, X, Lock } from 'lucide-react';
 import { EBA_EVENT_TYPES, BUSINESS_LINES, OpEvent, Language, TRANSLATIONS, User } from '../types';
 
 interface EventModuleProps {
@@ -10,6 +11,10 @@ interface EventModuleProps {
 const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
   const t = TRANSLATIONS[language];
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
+  
+  // Permissions Logic
+  const canEdit = user?.role === 'OpRisk' || user?.role === 'First Line';
+  const canValidate = user?.role === 'OpRisk';
   
   // Edit Mode State
   const [editingEvent, setEditingEvent] = useState<OpEvent | null>(null);
@@ -25,6 +30,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
       businessLine: "Retail Banking",
       processId: "PROC-RB-01",
       employeeEmail: "branch.manager@nfq.es",
+      department: "Retail Network North",
       status: "Approved",
       description: "Credit card skimming attack on ATM network in North region.",
       auditTrail: [{ date: "2023-10-16 10:00", user: "system", action: "Created via CSV" }]
@@ -39,6 +45,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
       businessLine: "Trading & Sales",
       processId: "PROC-TS-05",
       employeeEmail: "trader.joe@nfq.es",
+      department: "Global Markets",
       status: "Pending Validation",
       description: "Settlement error due to manual data entry mistake.",
       auditTrail: [{ date: "2023-10-18 14:30", user: "system", action: "Created via CSV" }]
@@ -46,7 +53,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
   ]);
 
   const handleCsvImport = () => {
-    // Simulating CSV Import
+    // Simulating CSV Import with Department inference
     const newEvents: OpEvent[] = [
         {
             id: `EVT-${new Date().getFullYear()}-${String(events.length + 1).padStart(3, '0')}`,
@@ -58,6 +65,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
             businessLine: "Commercial Banking",
             processId: "PROC-CB-02",
             employeeEmail: "data.officer@nfq.es",
+            department: "IT Security",
             status: "Pending Validation",
             description: "Data leak detected in legacy system.",
             auditTrail: [{ date: new Date().toLocaleString(), user: user?.email || 'unknown', action: "Imported via CSV" }]
@@ -67,6 +75,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
   };
 
   const handleStatusChange = (id: string, newStatus: 'Approved' | 'Rejected') => {
+      if (!canValidate) return;
       setEvents(events.map(e => {
           if (e.id === id) {
               return {
@@ -90,6 +99,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
   };
 
   const openEditPanel = (event: OpEvent) => {
+      if (!canEdit) return;
       setEditingEvent({ ...event });
       setActiveActionId(null);
   };
@@ -140,13 +150,15 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
           <p className="text-slate-500 dark:text-slate-400 mt-1">Operational Risk Events Repository</p>
         </div>
         <div className="flex space-x-3 mt-4 md:mt-0">
-            <button 
-            onClick={(e) => { e.stopPropagation(); handleCsvImport(); }}
-            className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors"
-            >
-            <Upload className="w-4 h-4 mr-2" />
-            {t.uploadCsv}
-            </button>
+            {canEdit && (
+                <button 
+                onClick={(e) => { e.stopPropagation(); handleCsvImport(); }}
+                className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                <Upload className="w-4 h-4 mr-2" />
+                {t.uploadCsv}
+                </button>
+            )}
         </div>
       </div>
 
@@ -171,7 +183,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
                          <th className="py-4 px-6">Event ID</th>
                          <th className="py-4 px-6">Date</th>
                          <th className="py-4 px-6">Classification</th>
-                         <th className="py-4 px-6">Employee</th>
+                         <th className="py-4 px-6">Dept / Origin</th>
                          <th className="py-4 px-6 text-right">Loss (€)</th>
                          <th className="py-4 px-6 text-center">Status</th>
                      </tr>
@@ -192,24 +204,33 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
                                      </button>
                                      {activeActionId === evt.id && (
                                          <div className="absolute left-0 top-8 z-50 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-white/10 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
-                                             <button 
-                                                onClick={() => handleStatusChange(evt.id, 'Approved')}
-                                                className="w-full text-left px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 flex items-center"
-                                             >
-                                                 <CheckCircle className="w-4 h-4 mr-2" /> {t.validate}
-                                             </button>
-                                             <button 
-                                                onClick={() => handleStatusChange(evt.id, 'Rejected')}
-                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
-                                             >
-                                                 <XCircle className="w-4 h-4 mr-2" /> {t.reject}
-                                             </button>
-                                             <button 
-                                                onClick={() => openEditPanel(evt)}
-                                                className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center"
-                                             >
-                                                 <Edit className="w-4 h-4 mr-2" /> {t.edit}
-                                             </button>
+                                            {canValidate && (
+                                                <>
+                                                    <button 
+                                                        onClick={() => handleStatusChange(evt.id, 'Approved')}
+                                                        className="w-full text-left px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 flex items-center"
+                                                    >
+                                                        <CheckCircle className="w-4 h-4 mr-2" /> {t.validate}
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleStatusChange(evt.id, 'Rejected')}
+                                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
+                                                    >
+                                                        <XCircle className="w-4 h-4 mr-2" /> {t.reject}
+                                                    </button>
+                                                </>
+                                            )}
+                                            {canEdit && (
+                                                <button 
+                                                    onClick={() => openEditPanel(evt)}
+                                                    className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center"
+                                                >
+                                                    <Edit className="w-4 h-4 mr-2" /> {t.edit}
+                                                </button>
+                                            )}
+                                            {!canEdit && !canValidate && (
+                                                 <div className="px-4 py-2 text-sm text-slate-500 italic">Read Only View</div>
+                                            )}
                                              <div className="border-t border-slate-100 dark:border-white/5 my-1"></div>
                                              <div className="px-4 py-2">
                                                  <p className="text-xs text-slate-400 font-bold mb-1">Audit Log:</p>
@@ -232,7 +253,10 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
                                      <span className="text-[10px] bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded w-fit">{evt.eventType}</span>
                                  </div>
                              </td>
-                             <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">{evt.employeeEmail}</td>
+                             <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">
+                                <div className="font-medium text-slate-700 dark:text-slate-300">{evt.department}</div>
+                                <div className="text-xs text-slate-500">{evt.employeeEmail}</div>
+                             </td>
                              <td className="py-4 px-6 text-right font-medium text-slate-900 dark:text-white">€ {evt.amount.toLocaleString()}</td>
                              <td className="py-4 px-6 text-center">
                                  <StatusBadge status={evt.status} />
@@ -292,6 +316,16 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
                                   <option key={line} value={line}>{line}</option>
                               ))}
                           </select>
+                      </div>
+
+                      <div>
+                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Department / Area</label>
+                          <input 
+                            type="text" 
+                            value={editingEvent.department} 
+                            onChange={(e) => setEditingEvent({...editingEvent, department: e.target.value})}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                          />
                       </div>
 
                       <div>
