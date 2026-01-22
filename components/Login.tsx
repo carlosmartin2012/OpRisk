@@ -8,14 +8,25 @@ interface LoginProps {
 
 const ALLOWED_EMAIL = 'carlos.martin@nfq.es';
 
+// Reusing the SVG Logo component logic for the Login screen
 const AlquidLogo = () => (
-    <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M30 80 L50 20 L70 80" stroke="#cbd5e1" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M40 55 L60 55" stroke="#cbd5e1" strokeWidth="8" strokeLinecap="round"/>
-      <path d="M25 80 L35 80" stroke="#8B4513" strokeWidth="8" strokeLinecap="round" />
-      <path d="M25 80 L32 55" stroke="#8B4513" strokeWidth="8" strokeLinecap="round" />
-    </svg>
-  );
+  <svg width="180" height="70" viewBox="0 0 160 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
+    <g transform="translate(5, 5)">
+        <path d="M10 38 L22 8 L27 22" stroke="#64748b" strokeWidth="6" strokeLinecap="butt" strokeLinejoin="miter"/>
+        <path d="M16 28 H31" stroke="#64748b" strokeWidth="5" strokeLinecap="butt" />
+        <path d="M25 18 L35 38" stroke="#8B4513" strokeWidth="6" strokeLinecap="butt" />
+        
+        <text x="42" y="38" fontFamily="sans-serif" fontSize="32" fontWeight="bold" fill="#64748b" letterSpacing="-1">
+            alquid
+        </text>
+
+        <rect x="42" y="46" width="95" height="14" fill="#8B4513" rx="1" />
+        <text x="89.5" y="56" fontFamily="sans-serif" fontSize="9" fontWeight="bold" fill="white" textAnchor="middle" letterSpacing="1.5">
+            OPRISK
+        </text>
+    </g>
+  </svg>
+);
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -51,10 +62,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl relative z-10">
         <div className="text-center mb-10">
             <div className="flex justify-center mb-4">
-                <AlquidLogo />
+                 <AlquidLogo />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">ALQUID <span className="text-brand-brown">OpRisk</span></h1>
-            <p className="text-slate-400">Next Gen Risk Management</p>
+            <p className="text-slate-400 text-sm mt-2">Next Gen Risk Management</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

@@ -27,29 +27,29 @@ interface LayoutProps {
   setLanguage: (lang: Language) => void;
 }
 
-// Replicated Logo based on "A alquid" image
+// Custom Logo Component mimicking the style
 const AlquidLogo = () => (
-  <svg width="140" height="50" viewBox="0 0 140 50" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
-    {/* The 'A' Symbol */}
-    <g transform="translate(0, 0)">
-        {/* Grey Left Leg / Crossbar */}
-        <path d="M10 35 L20 10 L25 22" stroke="#64748b" strokeWidth="6" strokeLinecap="butt" />
-        <path d="M14 26 L28 26" stroke="#64748b" strokeWidth="5" strokeLinecap="butt" />
+  <svg width="160" height="60" viewBox="0 0 160 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
+    <g transform="translate(5, 5)">
+        {/* Symbol A - Constructed to look like the reference */}
+        {/* Left Leg & Crossbar (Grey) */}
+        <path d="M10 38 L22 8 L27 22" stroke="#64748b" strokeWidth="6" strokeLinecap="butt" strokeLinejoin="miter"/>
+        <path d="M16 28 H31" stroke="#64748b" strokeWidth="5" strokeLinecap="butt" />
         
-        {/* Brown Right Leg - distinct and overlapping */}
-        <path d="M22 18 L30 35" stroke="#8B4513" strokeWidth="6" strokeLinecap="butt" />
+        {/* Right Leg (Brand Brown) - Overlapping */}
+        <path d="M25 18 L35 38" stroke="#8B4513" strokeWidth="6" strokeLinecap="butt" />
+        
+        {/* Text 'alquid' */}
+        <text x="42" y="38" fontFamily="sans-serif" fontSize="32" fontWeight="bold" fill="#64748b" letterSpacing="-1">
+            alquid
+        </text>
+
+        {/* Bar 'OpRisk' */}
+        <rect x="42" y="46" width="95" height="14" fill="#8B4513" rx="1" />
+        <text x="89.5" y="56" fontFamily="sans-serif" fontSize="9" fontWeight="bold" fill="white" textAnchor="middle" letterSpacing="1.5">
+            OPRISK
+        </text>
     </g>
-
-    {/* Text 'alquid' in Grey sans-serif */}
-    <text x="40" y="35" fontFamily="sans-serif" fontSize="28" fontWeight="bold" fill="#64748b" letterSpacing="-1">
-        alquid
-    </text>
-
-    {/* Brown Bar with 'OpRisk' text */}
-    <rect x="40" y="42" width="100" height="14" fill="#8B4513" />
-    <text x="90" y="52" fontFamily="sans-serif" fontSize="10" fontWeight="bold" fill="white" textAnchor="middle" letterSpacing="0.5">
-        OpRisk
-    </text>
   </svg>
 );
 
@@ -90,7 +90,7 @@ const Layout: React.FC<LayoutProps> = ({
       
       {/* Sidebar - Desktop */}
       <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#0f172a] relative z-20">
-        <div className="p-6 flex items-center justify-center">
+        <div className="p-6 flex flex-col items-center justify-center">
              <AlquidLogo />
         </div>
 

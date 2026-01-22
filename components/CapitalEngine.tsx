@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, RefreshCw, Save } from 'lucide-react';
+import { Calculator, RefreshCw, Save, Info } from 'lucide-react';
 import { FinancialData } from '../types';
 
 const CapitalEngine: React.FC = () => {
@@ -12,6 +12,8 @@ const CapitalEngine: React.FC = () => {
     avgAnnualLoss: 15 
   });
 
+  const [useDefaultIlm, setUseDefaultIlm] = useState(false);
+
   const [results, setResults] = useState({
     bi: 0,
     bic: 0,
@@ -19,7 +21,7 @@ const CapitalEngine: React.FC = () => {
     capital: 0
   });
 
-  // Calculate whenever financials change
+  // Calculate whenever financials or ILM toggle changes
   useEffect(() => {
     // 1. Business Indicator (Simplified for demo)
     // ILDC = Min(Abs(Interest Income - Interest Expense), 2.25% * Interest Earning Assets) -> Simplified to net interest
@@ -46,14 +48,19 @@ const CapitalEngine: React.FC = () => {
     }
 
     // 3. ILM (Internal Loss Multiplier)
-    // Formula: ILM = ln(exp(1) - 1 + (LC / BIC)^0.8)
-    // LC (Loss Component) = 15 * Average Annual Operational Risk Losses
-    const LC = 15 * financials.avgAnnualLoss;
-    
-    // Safety check for div by zero
-    const ratio = BIC > 0 ? LC / BIC : 0;
-    // Implementation of Basel III Formula
-    const ILM = Math.log(Math.exp(1) - 1 + Math.pow(ratio, 0.8));
+    let ILM = 1;
+
+    if (!useDefaultIlm) {
+        // Formula: ILM = ln(exp(1) - 1 + (LC / BIC)^0.8)
+        // LC (Loss Component) = 15 * Average Annual Operational Risk Losses
+        const LC = 15 * financials.avgAnnualLoss;
+        
+        // Safety check for div by zero
+        const ratio = BIC > 0 ? LC / BIC : 0;
+        
+        // Implementation of Basel III Formula
+        ILM = Math.log(Math.exp(1) - 1 + Math.pow(ratio, 0.8));
+    }
 
     // 4. Capital
     const Capital = BIC * ILM;
@@ -65,7 +72,7 @@ const CapitalEngine: React.FC = () => {
         capital: Capital
     });
 
-  }, [financials]);
+  }, [financials, useDefaultIlm]);
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
       setFinancials({
@@ -125,8 +132,29 @@ const CapitalEngine: React.FC = () => {
                     <div className="pt-4 border-t border-slate-200 dark:border-white/10">
                         <label className="text-xs font-bold text-slate-400 uppercase">Historical Loss Data</label>
                         <div className="mt-1">
-                             <input name="avgAnnualLoss" type="number" value={financials.avgAnnualLoss} onChange={handleInput} className="w-full bg-slate-50 dark:bg-slate-900 border border-red-500/20 rounded-lg p-2 text-sm text-slate-900 dark:text-white" placeholder="Avg Annual Loss (10y)" />
+                             <input 
+                                name="avgAnnualLoss" 
+                                type="number" 
+                                value={financials.avgAnnualLoss} 
+                                onChange={handleInput} 
+                                disabled={useDefaultIlm}
+                                className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-lg p-2 text-sm text-slate-900 dark:text-white transition-colors ${useDefaultIlm ? 'opacity-50 border-slate-200' : 'border-red-500/20'}`} 
+                                placeholder="Avg Annual Loss (10y)" 
+                             />
                              <p className="text-xs text-slate-500 mt-1">Average annual net loss over past 10 years</p>
+                        </div>
+                        
+                        <div className="mt-4 flex items-center p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-white/10">
+                            <input 
+                                type="checkbox" 
+                                id="useDefaultIlm"
+                                checked={useDefaultIlm}
+                                onChange={(e) => setUseDefaultIlm(e.target.checked)}
+                                className="w-4 h-4 text-brand-brown rounded border-slate-300 focus:ring-brand-brown cursor-pointer"
+                            />
+                            <label htmlFor="useDefaultIlm" className="ml-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                                Force ILM = 1 (Default)
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -158,15 +186,18 @@ const CapitalEngine: React.FC = () => {
                         <ResultBox label="Business Indicator (BI)" value={results.bi} />
                         <ResultBox label="BI Component (BIC)" value={results.bic} />
                         <ResultBox label="ILM Multiplier" value={results.ilm} unit="" />
-                        <ResultBox label="Loss Component" value={financials.avgAnnualLoss * 15} />
+                        <ResultBox label="Loss Component (LC)" value={useDefaultIlm ? 0 : financials.avgAnnualLoss * 15} />
                     </div>
 
-                    <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-500/10 rounded-xl border border-yellow-200 dark:border-yellow-500/20 flex items-start">
-                        <RefreshCw className="w-5 h-5 text-yellow-600 dark:text-yellow-500 mr-3 mt-0.5" />
+                    <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-500/20 flex items-start">
+                        <Info className="w-5 h-5 text-blue-600 dark:text-blue-500 mr-3 mt-0.5" />
                         <div>
-                            <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-500">ILM Sensitivity</p>
-                            <p className="text-sm text-yellow-700 dark:text-yellow-600/80 mt-1">
-                                Your Internal Loss Multiplier is {results.ilm.toFixed(3)}. Since it is {results.ilm > 1 ? 'greater' : 'less'} than 1, your past operational losses are {results.ilm > 1 ? 'increasing' : 'decreasing'} your capital requirement relative to the industry baseline.
+                            <p className="text-sm font-semibold text-blue-800 dark:text-blue-400">SMA Logic Applied</p>
+                            <p className="text-sm text-blue-700 dark:text-blue-300/80 mt-1">
+                                {useDefaultIlm 
+                                    ? "Using standardized ILM = 1. Loss history is ignored for the multiplier calculation (National Discretion)."
+                                    : `ILM is calculated dynamically based on the Loss Component (15x Avg Loss). Current ILM of ${results.ilm.toFixed(3)} indicates that historical losses are ${results.ilm > 1 ? 'increasing' : 'decreasing'} the capital charge relative to the baseline.`
+                                }
                             </p>
                         </div>
                     </div>
