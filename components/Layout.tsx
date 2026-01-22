@@ -1,0 +1,196 @@
+import React from 'react';
+import { 
+  LayoutDashboard, 
+  Database, 
+  ShieldCheck, 
+  Calculator, 
+  Users, 
+  LogOut, 
+  Sun, 
+  Moon,
+  Menu,
+  CheckSquare,
+  Globe,
+  FileClock
+} from 'lucide-react';
+import { ViewState, User, Language, TRANSLATIONS } from '../types';
+
+interface LayoutProps {
+  children: React.ReactNode;
+  currentView: ViewState;
+  setView: (view: ViewState) => void;
+  user: User | null;
+  onLogout: () => void;
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+  language: Language;
+  setLanguage: (lang: Language) => void;
+}
+
+// Replicated Logo based on "A alquid" image
+const AlquidLogo = () => (
+  <svg width="140" height="50" viewBox="0 0 140 50" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
+    {/* The 'A' Symbol */}
+    <g transform="translate(0, 0)">
+        {/* Grey Left Leg / Crossbar */}
+        <path d="M10 35 L20 10 L25 22" stroke="#64748b" strokeWidth="6" strokeLinecap="butt" />
+        <path d="M14 26 L28 26" stroke="#64748b" strokeWidth="5" strokeLinecap="butt" />
+        
+        {/* Brown Right Leg - distinct and overlapping */}
+        <path d="M22 18 L30 35" stroke="#8B4513" strokeWidth="6" strokeLinecap="butt" />
+    </g>
+
+    {/* Text 'alquid' in Grey sans-serif */}
+    <text x="40" y="35" fontFamily="sans-serif" fontSize="28" fontWeight="bold" fill="#64748b" letterSpacing="-1">
+        alquid
+    </text>
+
+    {/* Brown Bar with 'OpRisk' text */}
+    <rect x="40" y="42" width="100" height="14" fill="#8B4513" />
+    <text x="90" y="52" fontFamily="sans-serif" fontSize="10" fontWeight="bold" fill="white" textAnchor="middle" letterSpacing="0.5">
+        OpRisk
+    </text>
+  </svg>
+);
+
+const Layout: React.FC<LayoutProps> = ({ 
+  children, 
+  currentView, 
+  setView, 
+  user, 
+  onLogout,
+  isDarkMode,
+  toggleTheme,
+  language,
+  setLanguage
+}) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [userMenuOpen, setUserMenuOpen] = React.useState(false);
+  const t = TRANSLATIONS[language];
+
+  const NavItem = ({ view, icon: Icon, label }: { view: ViewState; icon: any; label: string }) => (
+    <button
+      onClick={() => {
+        setView(view);
+        setMobileMenuOpen(false);
+      }}
+      className={`flex items-center w-full px-4 py-3 mb-2 rounded-xl transition-all duration-200 group ${
+        currentView === view
+          ? 'bg-gradient-to-r from-brand-gray/10 to-brand-brown/10 border-l-4 border-brand-brown text-slate-800 dark:text-slate-100 font-semibold shadow-sm'
+          : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
+      }`}
+    >
+      <Icon className={`w-5 h-5 mr-3 ${currentView === view ? 'text-brand-brown' : 'group-hover:text-brand-brown'}`} />
+      <span>{label}</span>
+    </button>
+  );
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-[#0f172a] text-slate-900 dark:text-white transition-colors duration-300">
+      
+      {/* Sidebar - Desktop */}
+      <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#0f172a] relative z-20">
+        <div className="p-6 flex items-center justify-center">
+             <AlquidLogo />
+        </div>
+
+        <nav className="flex-1 px-4 py-4 space-y-1">
+          <NavItem view={ViewState.DASHBOARD} icon={LayoutDashboard} label={t.dashboard} />
+          <NavItem view={ViewState.DATA} icon={Database} label={t.data} />
+          <NavItem view={ViewState.RCSA} icon={ShieldCheck} label={t.rcsa} />
+          <NavItem view={ViewState.CONTROL_TESTING} icon={CheckSquare} label={t.controlTesting} />
+          <NavItem view={ViewState.CAPITAL} icon={Calculator} label={t.capitalEngine} />
+          <NavItem view={ViewState.AUDIT_LOGS} icon={FileClock} label={t.auditLogs} />
+          <div className="pt-4 border-t border-slate-200 dark:border-white/10 mt-4">
+             <NavItem view={ViewState.USERS} icon={Users} label={t.userManagement} />
+          </div>
+        </nav>
+
+        <div className="p-4 border-t border-slate-200 dark:border-white/5 relative">
+            <button 
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center w-full p-3 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
+            >
+                <div className="w-8 h-8 rounded-full bg-brand-brown text-white flex items-center justify-center font-bold">
+                    {user?.name.charAt(0)}
+                </div>
+                <div className="ml-3 overflow-hidden text-left flex-1">
+                    <p className="text-sm font-medium truncate">{user?.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
+                </div>
+            </button>
+
+            {/* User Dropdown */}
+            {userMenuOpen && (
+                <div className="absolute bottom-20 left-4 right-4 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-white/10 p-2 space-y-1 animate-in slide-in-from-bottom-2 fade-in z-50">
+                    <button 
+                        onClick={() => setLanguage(language === 'EN' ? 'ES' : 'EN')}
+                        className="w-full flex items-center px-3 py-2 text-sm rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300"
+                    >
+                        <Globe className="w-4 h-4 mr-2" />
+                        {language === 'EN' ? 'Switch to Español' : 'Cambiar a English'}
+                    </button>
+                    <button 
+                        onClick={onLogout}
+                        className="w-full flex items-center px-3 py-2 text-sm rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
+                    >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        {t.logout}
+                    </button>
+                </div>
+            )}
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col relative overflow-hidden">
+        {/* Header */}
+        <header className="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md sticky top-0 z-10">
+            <div className="md:hidden">
+                <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-500 hover:text-brand-brown">
+                    <Menu className="w-6 h-6" />
+                </button>
+            </div>
+            
+            <div className="flex-1 px-4">
+               {/* Spacer */}
+            </div>
+
+            <div className="flex items-center space-x-4">
+                <button 
+                    onClick={toggleTheme}
+                    className="p-2 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-brand-brown transition-colors"
+                >
+                    {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
+            </div>
+        </header>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+            <div className="absolute inset-0 z-50 bg-slate-900/95 backdrop-blur-xl md:hidden flex flex-col p-6">
+                 <div className="flex justify-between items-center mb-8">
+                    <h2 className="text-xl font-bold text-white">Menu</h2>
+                    <button onClick={() => setMobileMenuOpen(false)} className="text-white"><LogOut className="w-6 h-6 rotate-180" /></button>
+                 </div>
+                 <nav className="space-y-4">
+                    <NavItem view={ViewState.DASHBOARD} icon={LayoutDashboard} label={t.dashboard} />
+                    <NavItem view={ViewState.DATA} icon={Database} label={t.data} />
+                    <NavItem view={ViewState.RCSA} icon={ShieldCheck} label={t.rcsa} />
+                    <NavItem view={ViewState.CONTROL_TESTING} icon={CheckSquare} label={t.controlTesting} />
+                    <NavItem view={ViewState.CAPITAL} icon={Calculator} label={t.capitalEngine} />
+                    <NavItem view={ViewState.AUDIT_LOGS} icon={FileClock} label={t.auditLogs} />
+                 </nav>
+            </div>
+        )}
+
+        {/* View Area */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+            {children}
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default Layout;

@@ -1,0 +1,338 @@
+import React, { useState } from 'react';
+import { Plus, Search, Filter, Upload, MoreVertical, CheckCircle, XCircle, Edit, Save, X } from 'lucide-react';
+import { EBA_EVENT_TYPES, BUSINESS_LINES, OpEvent, Language, TRANSLATIONS, User } from '../types';
+
+interface EventModuleProps {
+    language: Language;
+    user: User | null;
+}
+
+const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
+  const t = TRANSLATIONS[language];
+  const [activeActionId, setActiveActionId] = useState<string | null>(null);
+  
+  // Edit Mode State
+  const [editingEvent, setEditingEvent] = useState<OpEvent | null>(null);
+
+  const [events, setEvents] = useState<OpEvent[]>([
+    {
+      id: "EVT-2023-001",
+      dateDiscovery: "2023-10-15",
+      title: "ATM Skimming North",
+      amount: 45000,
+      currency: "EUR",
+      eventType: "External Fraud",
+      businessLine: "Retail Banking",
+      processId: "PROC-RB-01",
+      employeeEmail: "branch.manager@nfq.es",
+      status: "Approved",
+      description: "Credit card skimming attack on ATM network in North region.",
+      auditTrail: [{ date: "2023-10-16 10:00", user: "system", action: "Created via CSV" }]
+    },
+    {
+      id: "EVT-2023-002",
+      dateDiscovery: "2023-10-18",
+      title: "Settlement Error",
+      amount: 12500,
+      currency: "EUR",
+      eventType: "Execution, Delivery & Process Management",
+      businessLine: "Trading & Sales",
+      processId: "PROC-TS-05",
+      employeeEmail: "trader.joe@nfq.es",
+      status: "Pending Validation",
+      description: "Settlement error due to manual data entry mistake.",
+      auditTrail: [{ date: "2023-10-18 14:30", user: "system", action: "Created via CSV" }]
+    }
+  ]);
+
+  const handleCsvImport = () => {
+    // Simulating CSV Import
+    const newEvents: OpEvent[] = [
+        {
+            id: `EVT-${new Date().getFullYear()}-${String(events.length + 1).padStart(3, '0')}`,
+            dateDiscovery: new Date().toISOString().split('T')[0],
+            title: "Imported Data Breach",
+            amount: 50000,
+            currency: "EUR",
+            eventType: "Clients, Products & Business Practices",
+            businessLine: "Commercial Banking",
+            processId: "PROC-CB-02",
+            employeeEmail: "data.officer@nfq.es",
+            status: "Pending Validation",
+            description: "Data leak detected in legacy system.",
+            auditTrail: [{ date: new Date().toLocaleString(), user: user?.email || 'unknown', action: "Imported via CSV" }]
+        }
+    ];
+    setEvents([...newEvents, ...events]);
+  };
+
+  const handleStatusChange = (id: string, newStatus: 'Approved' | 'Rejected') => {
+      setEvents(events.map(e => {
+          if (e.id === id) {
+              return {
+                  ...e,
+                  status: newStatus,
+                  auditTrail: [
+                      { 
+                          date: new Date().toLocaleString(), 
+                          user: user?.email || 'Unknown', 
+                          action: `Changed status to ${newStatus}`,
+                          module: 'Data',
+                          type: 'Validation'
+                      },
+                      ...e.auditTrail
+                  ]
+              };
+          }
+          return e;
+      }));
+      setActiveActionId(null);
+  };
+
+  const openEditPanel = (event: OpEvent) => {
+      setEditingEvent({ ...event });
+      setActiveActionId(null);
+  };
+
+  const saveEdit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!editingEvent) return;
+
+      setEvents(events.map(evt => {
+          if (evt.id === editingEvent.id) {
+              return {
+                  ...editingEvent,
+                  auditTrail: [
+                      {
+                          date: new Date().toLocaleString(),
+                          user: user?.email || 'Unknown',
+                          action: "Edited event details",
+                          module: 'Data',
+                          type: 'Edit'
+                      },
+                      ...evt.auditTrail
+                  ]
+              }
+          }
+          return evt;
+      }));
+      setEditingEvent(null);
+  };
+
+  const StatusBadge = ({ status }: { status: string }) => {
+    let colorClass = 'bg-slate-500/20 text-slate-500';
+    if (status === 'Approved') colorClass = 'bg-emerald-500/20 text-emerald-500';
+    if (status === 'Rejected') colorClass = 'bg-red-500/20 text-red-500';
+    if (status === 'Pending Validation') colorClass = 'bg-orange-500/20 text-orange-500';
+
+    return (
+        <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${colorClass}`}>
+            {status === 'Approved' ? t.approved : status === 'Rejected' ? t.rejected : status === 'Pending Validation' ? t.pending : status}
+        </span>
+    );
+  };
+
+  return (
+    <div className="space-y-6" onClick={() => setActiveActionId(null)}>
+       <div className="flex flex-col md:flex-row md:items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t.data}</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Operational Risk Events Repository</p>
+        </div>
+        <div className="flex space-x-3 mt-4 md:mt-0">
+            <button 
+            onClick={(e) => { e.stopPropagation(); handleCsvImport(); }}
+            className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors"
+            >
+            <Upload className="w-4 h-4 mr-2" />
+            {t.uploadCsv}
+            </button>
+        </div>
+      </div>
+
+      {/* Filters Bar */}
+      <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md p-4 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col md:flex-row gap-4">
+         <div className="relative flex-1">
+             <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
+             <input type="text" placeholder="Search events..." className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-brown" />
+         </div>
+         <button className="flex items-center px-4 py-2 border border-slate-200 dark:border-white/10 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5">
+             <Filter className="w-4 h-4 mr-2" /> Filter
+         </button>
+      </div>
+
+      {/* Data Table */}
+      <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-200 dark:border-white/5 overflow-visible shadow-sm min-h-[400px]">
+         <div className="overflow-x-auto">
+             <table className="w-full text-left border-collapse">
+                 <thead>
+                     <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/5 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+                         <th className="py-4 px-6 w-10"></th>
+                         <th className="py-4 px-6">Event ID</th>
+                         <th className="py-4 px-6">Date</th>
+                         <th className="py-4 px-6">Classification</th>
+                         <th className="py-4 px-6">Employee</th>
+                         <th className="py-4 px-6 text-right">Loss (€)</th>
+                         <th className="py-4 px-6 text-center">Status</th>
+                     </tr>
+                 </thead>
+                 <tbody className="divide-y divide-slate-200 dark:divide-white/5">
+                     {events.map((evt) => (
+                         <tr key={evt.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group relative">
+                             <td className="py-4 px-6 relative">
+                                 <div className="relative">
+                                     <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setActiveActionId(activeActionId === evt.id ? null : evt.id);
+                                        }}
+                                        className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                                     >
+                                         <MoreVertical className="w-4 h-4" />
+                                     </button>
+                                     {activeActionId === evt.id && (
+                                         <div className="absolute left-0 top-8 z-50 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-white/10 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                                             <button 
+                                                onClick={() => handleStatusChange(evt.id, 'Approved')}
+                                                className="w-full text-left px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 flex items-center"
+                                             >
+                                                 <CheckCircle className="w-4 h-4 mr-2" /> {t.validate}
+                                             </button>
+                                             <button 
+                                                onClick={() => handleStatusChange(evt.id, 'Rejected')}
+                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
+                                             >
+                                                 <XCircle className="w-4 h-4 mr-2" /> {t.reject}
+                                             </button>
+                                             <button 
+                                                onClick={() => openEditPanel(evt)}
+                                                className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center"
+                                             >
+                                                 <Edit className="w-4 h-4 mr-2" /> {t.edit}
+                                             </button>
+                                             <div className="border-t border-slate-100 dark:border-white/5 my-1"></div>
+                                             <div className="px-4 py-2">
+                                                 <p className="text-xs text-slate-400 font-bold mb-1">Audit Log:</p>
+                                                 {evt.auditTrail.slice(0, 2).map((log, i) => (
+                                                     <p key={i} className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                                                         {log.action}
+                                                     </p>
+                                                 ))}
+                                             </div>
+                                         </div>
+                                     )}
+                                 </div>
+                             </td>
+                             <td className="py-4 px-6 font-mono text-sm font-medium text-brand-brown dark:text-orange-400">{evt.id}</td>
+                             <td className="py-4 px-6 text-slate-600 dark:text-slate-300 text-sm">{evt.dateDiscovery}</td>
+                             <td className="py-4 px-6">
+                                 <p className="text-sm font-medium text-slate-900 dark:text-white">{evt.title}</p>
+                                 <div className="flex flex-col gap-1 mt-1">
+                                     <span className="text-[10px] bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded w-fit">{evt.businessLine}</span>
+                                     <span className="text-[10px] bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded w-fit">{evt.eventType}</span>
+                                 </div>
+                             </td>
+                             <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">{evt.employeeEmail}</td>
+                             <td className="py-4 px-6 text-right font-medium text-slate-900 dark:text-white">€ {evt.amount.toLocaleString()}</td>
+                             <td className="py-4 px-6 text-center">
+                                 <StatusBadge status={evt.status} />
+                             </td>
+                         </tr>
+                     ))}
+                 </tbody>
+             </table>
+         </div>
+      </div>
+
+      {/* Edit Drawer (Slide Over) */}
+      {editingEvent && (
+          <div className="fixed inset-0 z-50 flex justify-end">
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setEditingEvent(null)}></div>
+              <div className="relative w-full max-w-md bg-white dark:bg-slate-900 h-full shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
+                  <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-white dark:bg-slate-900 sticky top-0 z-10">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">Edit Event: {editingEvent.id}</h3>
+                      <button onClick={() => setEditingEvent(null)} className="text-slate-500 hover:text-red-500">
+                          <X className="w-6 h-6" />
+                      </button>
+                  </div>
+                  <form onSubmit={saveEdit} className="p-6 space-y-4">
+                      <div>
+                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Title</label>
+                          <input 
+                            type="text" 
+                            value={editingEvent.title} 
+                            onChange={(e) => setEditingEvent({...editingEvent, title: e.target.value})}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                          />
+                      </div>
+                      
+                      {/* EBA Event Type Selector */}
+                      <div>
+                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Event Type (EBA Level 1)</label>
+                          <select 
+                             value={editingEvent.eventType}
+                             onChange={(e) => setEditingEvent({...editingEvent, eventType: e.target.value})}
+                             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                          >
+                              {EBA_EVENT_TYPES.map(type => (
+                                  <option key={type} value={type}>{type}</option>
+                              ))}
+                          </select>
+                      </div>
+
+                      {/* Business Line Selector */}
+                      <div>
+                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Business Line</label>
+                          <select 
+                             value={editingEvent.businessLine}
+                             onChange={(e) => setEditingEvent({...editingEvent, businessLine: e.target.value})}
+                             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                          >
+                              {BUSINESS_LINES.map(line => (
+                                  <option key={line} value={line}>{line}</option>
+                              ))}
+                          </select>
+                      </div>
+
+                      <div>
+                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Amount (€)</label>
+                          <input 
+                            type="number" 
+                            value={editingEvent.amount} 
+                            onChange={(e) => setEditingEvent({...editingEvent, amount: Number(e.target.value)})}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Description</label>
+                          <textarea 
+                            rows={4}
+                            value={editingEvent.description} 
+                            onChange={(e) => setEditingEvent({...editingEvent, description: e.target.value})}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                          />
+                      </div>
+                      <div className="pt-4 flex justify-end">
+                          <button type="submit" className="flex items-center px-4 py-2 bg-brand-brown hover:bg-orange-800 text-white rounded-lg">
+                              <Save className="w-4 h-4 mr-2" /> Save Changes
+                          </button>
+                      </div>
+                      <div className="mt-8 border-t border-slate-200 dark:border-white/10 pt-4">
+                          <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Audit Trail</h4>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                              {editingEvent.auditTrail.map((log, i) => (
+                                  <div key={i} className="text-xs text-slate-500 border-l-2 border-slate-300 pl-2">
+                                      <span className="font-semibold">{log.date}</span> - {log.action} ({log.user})
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      )}
+    </div>
+  );
+};
+
+export default EventModule;
