@@ -12,7 +12,7 @@ export enum ViewState {
 
 export type Language = 'EN' | 'ES';
 
-export type UserRole = 'OpRisk' | 'First Line' | 'Auditor';
+export type UserRole = 'OpRisk' | 'First Line' | 'Auditor' | 'Administrator';
 
 export interface User {
   id: string;
