@@ -4,10 +4,18 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
+    const port = Number(process.env.PORT) || 3000;
+    
     return {
       server: {
-        port: 3000,
+        port,
         host: '0.0.0.0',
+        allowedHosts: true, // Only for Vite 6+ to allow Replit domains
+      },
+      preview: {
+        port,
+        host: '0.0.0.0',
+        allowedHosts: true,
       },
       plugins: [react()],
       define: {
