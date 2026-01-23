@@ -16,8 +16,28 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
   const canEdit = user?.role === 'OpRisk' || user?.role === 'First Line';
   const canValidate = user?.role === 'OpRisk';
   
-  // Edit Mode State
+  // State
   const [editingEvent, setEditingEvent] = useState<OpEvent | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+
+  // New Event Template
+  const emptyEvent: OpEvent = {
+      id: '',
+      dateDiscovery: new Date().toISOString().split('T')[0],
+      title: '',
+      amount: 0,
+      currency: 'EUR',
+      eventType: EBA_EVENT_TYPES[0],
+      businessLine: BUSINESS_LINES[0],
+      processId: '',
+      employeeEmail: user?.email || '',
+      department: user?.department || '',
+      status: 'Pending Validation',
+      description: '',
+      auditTrail: []
+  };
+
+  const [newEvent, setNewEvent] = useState<OpEvent>(emptyEvent);
 
   const [events, setEvents] = useState<OpEvent[]>([
     {
@@ -53,7 +73,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
   ]);
 
   const handleCsvImport = () => {
-    // Simulating CSV Import with Department inference
+    // Simulating CSV Import
     const newEvents: OpEvent[] = [
         {
             id: `EVT-${new Date().getFullYear()}-${String(events.length + 1).padStart(3, '0')}`,
@@ -72,6 +92,25 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
         }
     ];
     setEvents([...newEvents, ...events]);
+  };
+
+  const handleCreateEvent = (e: React.FormEvent) => {
+      e.preventDefault();
+      const generatedId = `EVT-${new Date().getFullYear()}-${String(events.length + 1).padStart(3, '0')}`;
+      const eventToSave = {
+          ...newEvent,
+          id: generatedId,
+          auditTrail: [{ 
+              date: new Date().toLocaleString(), 
+              user: user?.email || 'Unknown', 
+              action: "Created Manually",
+              module: 'Data',
+              type: 'Creation'
+          }]
+      };
+      setEvents([eventToSave, ...events]);
+      setIsCreating(false);
+      setNewEvent(emptyEvent); // Reset
   };
 
   const handleStatusChange = (id: string, newStatus: 'Approved' | 'Rejected') => {
@@ -142,6 +181,132 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
     );
   };
 
+  // Reusable Form Component
+  const EventForm = ({ 
+      data, 
+      setData, 
+      onSubmit, 
+      title, 
+      onClose 
+  }: { 
+      data: OpEvent, 
+      setData: (d: OpEvent) => void, 
+      onSubmit: (e: React.FormEvent) => void, 
+      title: string, 
+      onClose: () => void 
+  }) => (
+      <div className="fixed inset-0 z-50 flex justify-end">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 h-full shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
+              <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-white dark:bg-slate-900 sticky top-0 z-10">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h3>
+                  <button onClick={onClose} className="text-slate-500 hover:text-red-500">
+                      <X className="w-6 h-6" />
+                  </button>
+              </div>
+              <form onSubmit={onSubmit} className="p-6 space-y-4">
+                  <div>
+                      <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Title</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={data.title} 
+                        onChange={(e) => setData({...data, title: e.target.value})}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                        placeholder="e.g., ATM Malfunction"
+                      />
+                  </div>
+                  <div>
+                      <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Date of Discovery</label>
+                      <input 
+                        type="date" 
+                        required
+                        value={data.dateDiscovery} 
+                        onChange={(e) => setData({...data, dateDiscovery: e.target.value})}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                      />
+                  </div>
+                  
+                  {/* EBA Event Type Selector */}
+                  <div>
+                      <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Event Type (EBA Level 1)</label>
+                      <select 
+                         value={data.eventType}
+                         onChange={(e) => setData({...data, eventType: e.target.value})}
+                         className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                      >
+                          {EBA_EVENT_TYPES.map(type => (
+                              <option key={type} value={type}>{type}</option>
+                          ))}
+                      </select>
+                  </div>
+
+                  {/* Business Line Selector */}
+                  <div>
+                      <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Business Line</label>
+                      <select 
+                         value={data.businessLine}
+                         onChange={(e) => setData({...data, businessLine: e.target.value})}
+                         className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                      >
+                          {BUSINESS_LINES.map(line => (
+                              <option key={line} value={line}>{line}</option>
+                          ))}
+                      </select>
+                  </div>
+
+                  <div>
+                      <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Department / Area</label>
+                      <input 
+                        type="text" 
+                        value={data.department} 
+                        onChange={(e) => setData({...data, department: e.target.value})}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                      />
+                  </div>
+
+                  <div>
+                      <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Amount (€)</label>
+                      <input 
+                        type="number" 
+                        required
+                        value={data.amount} 
+                        onChange={(e) => setData({...data, amount: Number(e.target.value)})}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                      />
+                  </div>
+                  <div>
+                      <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Description</label>
+                      <textarea 
+                        rows={4}
+                        required
+                        value={data.description} 
+                        onChange={(e) => setData({...data, description: e.target.value})}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                      />
+                  </div>
+                  <div className="pt-4 flex justify-end">
+                      <button type="submit" className="flex items-center px-4 py-2 bg-brand-brown hover:bg-orange-800 text-white rounded-lg">
+                          <Save className="w-4 h-4 mr-2" /> Save
+                      </button>
+                  </div>
+                  {data.auditTrail.length > 0 && (
+                       <div className="mt-8 border-t border-slate-200 dark:border-white/10 pt-4">
+                           <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Audit Trail</h4>
+                           <div className="space-y-2 max-h-40 overflow-y-auto">
+                               {data.auditTrail.map((log, i) => (
+                                   <div key={i} className="text-xs text-slate-500 border-l-2 border-slate-300 pl-2">
+                                       <span className="font-semibold">{log.date}</span> - {log.action} ({log.user})
+                                   </div>
+                               ))}
+                           </div>
+                       </div>
+                  )}
+              </form>
+          </div>
+      </div>
+  );
+
   return (
     <div className="space-y-6" onClick={() => setActiveActionId(null)}>
        <div className="flex flex-col md:flex-row md:items-center justify-between">
@@ -151,13 +316,22 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
         </div>
         <div className="flex space-x-3 mt-4 md:mt-0">
             {canEdit && (
-                <button 
-                onClick={(e) => { e.stopPropagation(); handleCsvImport(); }}
-                className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                <Upload className="w-4 h-4 mr-2" />
-                {t.uploadCsv}
-                </button>
+                <>
+                    <button 
+                    onClick={() => setIsCreating(true)}
+                    className="flex items-center px-4 py-2 bg-brand-brown hover:bg-orange-800 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-black/20"
+                    >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t.createEvent}
+                    </button>
+                    <button 
+                    onClick={(e) => { e.stopPropagation(); handleCsvImport(); }}
+                    className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {t.uploadCsv}
+                    </button>
+                </>
             )}
         </div>
       </div>
@@ -268,102 +442,26 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user }) => {
          </div>
       </div>
 
-      {/* Edit Drawer (Slide Over) */}
+      {/* Edit Drawer (Existing Event) */}
       {editingEvent && (
-          <div className="fixed inset-0 z-50 flex justify-end">
-              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setEditingEvent(null)}></div>
-              <div className="relative w-full max-w-md bg-white dark:bg-slate-900 h-full shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
-                  <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-white dark:bg-slate-900 sticky top-0 z-10">
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">Edit Event: {editingEvent.id}</h3>
-                      <button onClick={() => setEditingEvent(null)} className="text-slate-500 hover:text-red-500">
-                          <X className="w-6 h-6" />
-                      </button>
-                  </div>
-                  <form onSubmit={saveEdit} className="p-6 space-y-4">
-                      <div>
-                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Title</label>
-                          <input 
-                            type="text" 
-                            value={editingEvent.title} 
-                            onChange={(e) => setEditingEvent({...editingEvent, title: e.target.value})}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
-                          />
-                      </div>
-                      
-                      {/* EBA Event Type Selector */}
-                      <div>
-                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Event Type (EBA Level 1)</label>
-                          <select 
-                             value={editingEvent.eventType}
-                             onChange={(e) => setEditingEvent({...editingEvent, eventType: e.target.value})}
-                             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
-                          >
-                              {EBA_EVENT_TYPES.map(type => (
-                                  <option key={type} value={type}>{type}</option>
-                              ))}
-                          </select>
-                      </div>
+          <EventForm 
+            data={editingEvent} 
+            setData={setEditingEvent} 
+            onSubmit={saveEdit} 
+            title={`Edit Event: ${editingEvent.id}`}
+            onClose={() => setEditingEvent(null)}
+          />
+      )}
 
-                      {/* Business Line Selector */}
-                      <div>
-                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Business Line</label>
-                          <select 
-                             value={editingEvent.businessLine}
-                             onChange={(e) => setEditingEvent({...editingEvent, businessLine: e.target.value})}
-                             className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
-                          >
-                              {BUSINESS_LINES.map(line => (
-                                  <option key={line} value={line}>{line}</option>
-                              ))}
-                          </select>
-                      </div>
-
-                      <div>
-                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Department / Area</label>
-                          <input 
-                            type="text" 
-                            value={editingEvent.department} 
-                            onChange={(e) => setEditingEvent({...editingEvent, department: e.target.value})}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
-                          />
-                      </div>
-
-                      <div>
-                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Amount (€)</label>
-                          <input 
-                            type="number" 
-                            value={editingEvent.amount} 
-                            onChange={(e) => setEditingEvent({...editingEvent, amount: Number(e.target.value)})}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
-                          />
-                      </div>
-                      <div>
-                          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Description</label>
-                          <textarea 
-                            rows={4}
-                            value={editingEvent.description} 
-                            onChange={(e) => setEditingEvent({...editingEvent, description: e.target.value})}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
-                          />
-                      </div>
-                      <div className="pt-4 flex justify-end">
-                          <button type="submit" className="flex items-center px-4 py-2 bg-brand-brown hover:bg-orange-800 text-white rounded-lg">
-                              <Save className="w-4 h-4 mr-2" /> Save Changes
-                          </button>
-                      </div>
-                      <div className="mt-8 border-t border-slate-200 dark:border-white/10 pt-4">
-                          <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Audit Trail</h4>
-                          <div className="space-y-2 max-h-40 overflow-y-auto">
-                              {editingEvent.auditTrail.map((log, i) => (
-                                  <div key={i} className="text-xs text-slate-500 border-l-2 border-slate-300 pl-2">
-                                      <span className="font-semibold">{log.date}</span> - {log.action} ({log.user})
-                                  </div>
-                              ))}
-                          </div>
-                      </div>
-                  </form>
-              </div>
-          </div>
+      {/* Create Modal (New Event) */}
+      {isCreating && (
+          <EventForm 
+            data={newEvent} 
+            setData={setNewEvent} 
+            onSubmit={handleCreateEvent} 
+            title="Create New Operational Event"
+            onClose={() => { setIsCreating(false); setNewEvent(emptyEvent); }}
+          />
       )}
     </div>
   );

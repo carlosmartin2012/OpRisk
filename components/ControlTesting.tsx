@@ -17,9 +17,9 @@ const ControlTesting: React.FC<ControlTestingProps> = ({ language, user }) => {
 
     // Mock Data
     const [controls, setControls] = useState<Control[]>([
-        { id: 'CTRL-01', riskId: 'R-001', description: 'Dual authentication for new card creation', type: 'Preventive', frequency: 'Daily', status: 'Pending', owner: 'Sec Team' },
-        { id: 'CTRL-02', riskId: 'R-001', description: 'Daily reconciliation report of issued cards', type: 'Detective', frequency: 'Daily', status: 'Tested', evidence: 'rec_report_oct.pdf', lastTested: '2023-10-20', owner: 'Ops Team' },
-        { id: 'CTRL-05', riskId: 'R-002', description: 'Vendor security assessment checklist', type: 'Preventive', frequency: 'Quarterly', status: 'Validated', evidence: 'vendor_audit_q3.pdf', lastTested: '2023-09-30', owner: 'Risk Team' }
+        { id: 'CTRL-01', riskId: 'R-001', description: 'Dual authentication for new card creation', type: 'Preventive', frequency: 'Daily', testingFrequency: 'Monthly', status: 'Pending', owner: 'Sec Team' },
+        { id: 'CTRL-02', riskId: 'R-001', description: 'Daily reconciliation report of issued cards', type: 'Detective', frequency: 'Daily', testingFrequency: 'Monthly', status: 'Tested', evidence: 'rec_report_oct.pdf', lastTested: '2023-10-20', owner: 'Ops Team' },
+        { id: 'CTRL-05', riskId: 'R-002', description: 'Vendor security assessment checklist', type: 'Preventive', frequency: 'Quarterly', testingFrequency: 'Annually', status: 'Validated', evidence: 'vendor_audit_q3.pdf', lastTested: '2023-09-30', owner: 'Risk Team' }
     ]);
 
     const handleUpload = (id: string) => {
@@ -71,7 +71,7 @@ const ControlTesting: React.FC<ControlTestingProps> = ({ language, user }) => {
                             <th className="py-4 px-6">Control ID</th>
                             <th className="py-4 px-6">Description</th>
                             <th className="py-4 px-6">Owner</th>
-                            <th className="py-4 px-6">Frequency</th>
+                            <th className="py-4 px-6">Freq (Exec / Test)</th>
                             <th className="py-4 px-6">Last Tested</th>
                             <th className="py-4 px-6">Evidence</th>
                             <th className="py-4 px-6 text-center">Status</th>
@@ -84,7 +84,12 @@ const ControlTesting: React.FC<ControlTestingProps> = ({ language, user }) => {
                                 <td className="py-4 px-6 font-mono text-xs font-bold text-slate-500">{ctrl.id}</td>
                                 <td className="py-4 px-6 text-sm text-slate-900 dark:text-white font-medium">{ctrl.description}</td>
                                 <td className="py-4 px-6 text-xs text-slate-500">{ctrl.owner}</td>
-                                <td className="py-4 px-6 text-xs text-slate-500">{ctrl.frequency}</td>
+                                <td className="py-4 px-6 text-xs text-slate-500">
+                                    <div className="flex flex-col">
+                                        <span>E: {ctrl.frequency}</span>
+                                        <span className="text-brand-brown">T: {ctrl.testingFrequency}</span>
+                                    </div>
+                                </td>
                                 <td className="py-4 px-6 text-xs text-slate-500">{ctrl.lastTested || '-'}</td>
                                 <td className="py-4 px-6">
                                     {ctrl.evidence ? (

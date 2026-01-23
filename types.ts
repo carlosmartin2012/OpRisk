@@ -30,7 +30,7 @@ export interface AuditLog {
   user: string;
   action: string;
   module: string;
-  type: 'Import' | 'Edit' | 'Execution' | 'Delete' | 'Validation';
+  type: 'Import' | 'Edit' | 'Execution' | 'Delete' | 'Validation' | 'Creation';
 }
 
 export interface OpEvent {
@@ -78,7 +78,8 @@ export interface Control {
   owner: string;
   description: string;
   type: 'Preventive' | 'Detective';
-  frequency: 'Daily' | 'Monthly' | 'Quarterly';
+  frequency: 'Daily' | 'Monthly' | 'Quarterly'; // Execution Frequency
+  testingFrequency: 'Monthly' | 'Quarterly' | 'Annually'; // New field: Testing Frequency
   status: 'Pending' | 'Tested' | 'Validated' | 'Non Validated';
   evidence?: string;
   lastTested?: string;
@@ -126,6 +127,7 @@ export const TRANSLATIONS = {
     logout: "Sign Out",
     welcome: "Welcome",
     uploadCsv: "Import CSV",
+    createEvent: "New Event",
     validate: "Validate",
     reject: "Reject",
     edit: "Edit",
@@ -159,6 +161,7 @@ export const TRANSLATIONS = {
     logout: "Cerrar Sesión",
     welcome: "Bienvenido",
     uploadCsv: "Importar CSV",
+    createEvent: "Nuevo Evento",
     validate: "Validar",
     reject: "Rechazar",
     edit: "Editar",

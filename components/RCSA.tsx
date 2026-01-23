@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef } from 'react';
 import { Department, Process, RiskItem, Control, Language, TRANSLATIONS } from '../types';
 import { Folder, ChevronRight, AlertTriangle, Shield, Table as TableIcon, Network, User, ZoomIn, ZoomOut, Move } from 'lucide-react';
@@ -30,7 +31,7 @@ const RCSA: React.FC<RCSAProps> = ({ language }) => {
     const risks: RiskItem[] = [
         { 
             id: 'R-001', processId: 'PROC-RB-01', description: 'Unauthorized issuance', 
-            inherentProb: 4, inherentImpact: 5, residualProb: 2, residualImpact: 3, controlIds: ['CTRL-01']
+            inherentProb: 4, inherentImpact: 5, residualProb: 2, residualImpact: 3, controlIds: ['CTRL-01', 'CTRL-02']
         },
         { 
             id: 'R-002', processId: 'PROC-RB-01', description: 'Data Leakage', 
@@ -47,9 +48,9 @@ const RCSA: React.FC<RCSAProps> = ({ language }) => {
     ];
 
     const controls: Control[] = [
-        { id: 'CTRL-01', riskId: 'R-001', description: 'Dual authentication', type: 'Preventive', frequency: 'Daily', status: 'Tested', owner: 'Sec Team' },
-        { id: 'CTRL-02', riskId: 'R-001', description: 'Daily reconcilation', type: 'Detective', frequency: 'Daily', status: 'Validated', owner: 'Ops Team' },
-        { id: 'CTRL-05', riskId: 'R-002', description: 'Vendor check', type: 'Preventive', frequency: 'Quarterly', status: 'Validated', owner: 'Risk Team' }
+        { id: 'CTRL-01', riskId: 'R-001', description: 'Dual authentication', type: 'Preventive', frequency: 'Daily', testingFrequency: 'Monthly', status: 'Tested', owner: 'Sec Team' },
+        { id: 'CTRL-02', riskId: 'R-001', description: 'Daily reconcilation', type: 'Detective', frequency: 'Daily', testingFrequency: 'Monthly', status: 'Validated', owner: 'Ops Team' },
+        { id: 'CTRL-05', riskId: 'R-002', description: 'Vendor check', type: 'Preventive', frequency: 'Quarterly', testingFrequency: 'Annually', status: 'Validated', owner: 'Risk Team' }
     ];
 
     const filteredProcesses = processes.filter(p => p.departmentId === selectedDept);
@@ -288,6 +289,10 @@ const RCSA: React.FC<RCSAProps> = ({ language }) => {
                                              <span className="flex items-center"><User className="w-3 h-3 mr-1" /> {ctrl.owner}</span>
                                              <span className={`px-1.5 py-0.5 rounded ${ctrl.status === 'Validated' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{ctrl.status}</span>
                                          </div>
+                                         <div className="mt-2 pt-2 border-t border-slate-200 dark:border-white/5 text-[10px] text-slate-400 flex justify-between">
+                                            <span>Exec: {ctrl.frequency}</span>
+                                            <span className="text-brand-brown">Test: {ctrl.testingFrequency}</span>
+                                         </div>
                                      </div>
                                  ))}
                                  {controls.filter(c => c.riskId === selectedRisk).length === 0 && (
@@ -384,17 +389,28 @@ const RCSA: React.FC<RCSAProps> = ({ language }) => {
                                                     <h5 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">Associated Controls</h5>
                                                     <div className="space-y-2">
                                                         {controls.filter(c => c.riskId === risk.id).map(ctrl => (
-                                                            <div key={ctrl.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-lg">
-                                                                <div className="flex items-center">
-                                                                    <CheckSquare className="w-4 h-4 text-emerald-500 mr-3" />
-                                                                    <div>
-                                                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-200">{ctrl.description}</p>
-                                                                        <p className="text-xs text-slate-500">Owner: {ctrl.owner} | Freq: {ctrl.frequency}</p>
+                                                            <div key={ctrl.id} className="flex flex-col p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center">
+                                                                        <CheckSquare className="w-4 h-4 text-emerald-500 mr-3" />
+                                                                        <div>
+                                                                            <p className="text-sm font-medium text-slate-900 dark:text-slate-200">{ctrl.description}</p>
+                                                                            <p className="text-xs text-slate-500">Owner: {ctrl.owner}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span className={`px-2 py-1 rounded text-xs font-bold ${ctrl.status === 'Validated' ? 'bg-emerald-100 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                                                        {ctrl.status}
+                                                                    </span>
+                                                                </div>
+                                                                {/* Frequency Details */}
+                                                                <div className="mt-2 pl-7 flex gap-4 text-xs">
+                                                                    <div className="flex items-center text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded">
+                                                                        <span className="font-bold mr-1">Execution:</span> {ctrl.frequency}
+                                                                    </div>
+                                                                    <div className="flex items-center text-brand-brown dark:text-orange-300 bg-orange-100 dark:bg-orange-900/20 px-2 py-0.5 rounded border border-orange-200 dark:border-orange-800">
+                                                                        <span className="font-bold mr-1">Testing:</span> {ctrl.testingFrequency}
                                                                     </div>
                                                                 </div>
-                                                                <span className={`px-2 py-1 rounded text-xs font-bold ${ctrl.status === 'Validated' ? 'bg-emerald-100 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                                                    {ctrl.status}
-                                                                </span>
                                                             </div>
                                                         ))}
                                                         {controls.filter(c => c.riskId === risk.id).length === 0 && (

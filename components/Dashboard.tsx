@@ -15,7 +15,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { TrendingUp, AlertOctagon, CheckCircle, DollarSign, Calculator, Settings, Filter, X } from 'lucide-react';
+import { TrendingUp, AlertOctagon, CheckCircle, DollarSign, Calculator, Settings, Filter, X, Shield, ArrowRight } from 'lucide-react';
 import { BUSINESS_LINES } from '../types';
 
 const dataLossTrend = [
@@ -33,6 +33,13 @@ const dataRiskType = [
   { name: 'Int. Fraud', value: 300 },
   { name: 'Execution', value: 300 },
   { name: 'Business', value: 200 },
+];
+
+// Mock Data for Controls awaiting validation
+const pendingControls = [
+    { id: 'CTRL-02', name: 'Daily reconciliation report', department: 'Ops Team', testedDate: '2023-10-20' },
+    { id: 'CTRL-09', name: 'Trader Limit Review', department: 'Trading & Sales', testedDate: '2023-10-22' },
+    { id: 'CTRL-14', name: 'Firewall Log Audit', department: 'IT Security', testedDate: '2023-10-23' },
 ];
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
@@ -162,6 +169,8 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Main Chart: Loss Trend */}
         <div className="lg:col-span-2 bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-white/5 shadow-sm">
           <h3 className="text-lg font-semibold mb-6 text-slate-900 dark:text-white">Loss Trend (6 Months)</h3>
           <div className="h-72">
@@ -186,32 +195,66 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-white/5 shadow-sm">
-          <h3 className="text-lg font-semibold mb-6 text-slate-900 dark:text-white">Loss by Event Type</h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={dataRiskType}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {dataRiskType.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                    contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc' }} 
-                />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+        {/* Right Column: Split between Control Queue and Pie Chart */}
+        <div className="space-y-6">
+            
+            {/* Control Validation Queue (New) */}
+            <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-white/5 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center">
+                        <Shield className="w-4 h-4 mr-2 text-brand-brown" />
+                        Control Validation Queue
+                    </h3>
+                    <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">{pendingControls.length}</span>
+                </div>
+                <div className="space-y-3">
+                    {pendingControls.map(ctrl => (
+                        <div key={ctrl.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5 hover:border-brand-brown transition-colors cursor-pointer group">
+                            <div className="flex justify-between">
+                                <span className="text-xs font-mono font-bold text-slate-500">{ctrl.id}</span>
+                                <span className="text-xs text-slate-400">{ctrl.testedDate}</span>
+                            </div>
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 truncate">{ctrl.name}</p>
+                            <div className="flex justify-between items-center mt-2">
+                                <span className="text-xs text-slate-500">{ctrl.department}</span>
+                                <span className="text-xs text-brand-brown font-semibold flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Review <ArrowRight className="w-3 h-3 ml-1" />
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Pie Chart: Loss by Type */}
+            <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-white/5 shadow-sm">
+                <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-white">Loss by Event Type</h3>
+                <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                        <Pie
+                        data={dataRiskType}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={60}
+                        fill="#8884d8"
+                        paddingAngle={5}
+                        dataKey="value"
+                        >
+                        {dataRiskType.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                        </Pie>
+                        <Tooltip 
+                            contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc' }} 
+                        />
+                        <Legend />
+                    </PieChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
         </div>
       </div>
     </div>
