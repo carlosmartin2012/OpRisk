@@ -60,13 +60,16 @@ export interface Process {
   id: string;
   departmentId: string;
   name: string;
-  owner: string;
+  owner?: string;
+  description?: string;
 }
 
 export interface RiskItem {
   id: string;
   processId: string;
+  name: string; // Added Name
   description: string;
+  owner?: string; // Added Owner
   inherentProb: number; // 1-5
   inherentImpact: number; // 1-5
   residualProb: number; // 1-5
@@ -77,10 +80,11 @@ export interface RiskItem {
 export interface Control {
   id: string;
   riskId: string;
+  name: string; // Added Name
   owner: string;
   description: string;
   type: 'Preventive' | 'Detective';
-  frequency: 'Daily' | 'Monthly' | 'Quarterly'; // Execution Frequency
+  frequency: 'Daily' | 'Monthly' | 'Quarterly' | 'Annually'; // Execution Frequency - Expanded
   testingFrequency: 'Monthly' | 'Quarterly' | 'Annually'; // New field: Testing Frequency
   status: 'Pending' | 'Tested' | 'Validated' | 'Non Validated';
   evidence?: string;

@@ -99,7 +99,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1.5">Email Address (SSO)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1.5">Email Address</label>
                         <input
                             type="email"
                             required

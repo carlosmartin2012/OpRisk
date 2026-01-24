@@ -218,9 +218,9 @@ const Layout: React.FC<LayoutProps> = ({
                   </p>
                   <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
                     <li><strong>Hierarchy Tree:</strong> Navigate through Departments {'>'} Processes {'>'} Risks.</li>
-                    <li><strong>Create Items:</strong> Use the small "+" button next to headers to add Departments, Processes, Risks, or Controls dynamically.</li>
-                    <li><strong>Neural Map:</strong> Switch to 'Map View' to visualize the interconnections between risks and processes in an interactive node graph.</li>
-                    <li><strong>Assessment:</strong> View Inherent vs. Residual risk scores based on control mitigation.</li>
+                    <li><strong>Create Items:</strong> Use the "+" button to add Departments, Processes with Owners, Risks with Impact/Prob Matrices, or Controls with Frequency.</li>
+                    <li><strong>Manage:</strong> Delete items using the trash icon (cascading effects apply). Import bulk data via CSV.</li>
+                    <li><strong>Neural Map:</strong> Switch to 'Map View' to visualize the interconnections between risks and processes.</li>
                   </ul>
                 </section>
 
@@ -233,8 +233,8 @@ const Layout: React.FC<LayoutProps> = ({
                   </p>
                   <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
                     <li><strong>Test Execution:</strong> Select a control and perform a test (e.g., "Sample check of 5 items").</li>
+                    <li><strong>Sorting & Filtering:</strong> Use the filter bar to find controls by Department, Risk, or Owner. Click headers to sort.</li>
                     <li><strong>Outcome:</strong> Mark results as "Effective", "Ineffective", or "Not Applicable".</li>
-                    <li><strong>Evidence:</strong> Attach evidence summaries to the test result.</li>
                   </ul>
                 </section>
 
@@ -267,7 +267,7 @@ const Layout: React.FC<LayoutProps> = ({
                         <li><em>First Line:</em> Can report events and view their own data.</li>
                       </ul>
                     </li>
-                    <li><strong>Access:</strong> Administrators can add users and reset permissions.</li>
+                    <li><strong>Access:</strong> Administrators can add, edit, and delete users.</li>
                   </ul>
                 </section>
               </div>

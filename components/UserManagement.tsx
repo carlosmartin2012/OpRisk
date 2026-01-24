@@ -1,6 +1,6 @@
 import React from 'react';
 import { User, UserRole } from '../types';
-import { Shield, Briefcase, Eye } from 'lucide-react';
+import { Shield, Briefcase, Eye, Trash2 } from 'lucide-react';
 
 interface UserManagementProps {
     users: User[];
@@ -92,9 +92,24 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, setUsers, curren
                                 </td>
                                 <td className="py-4 px-6 text-xs text-slate-500 font-mono">{u.lastLogin}</td>
                                 <td className="py-4 px-6 text-center">
-                                    <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase">
-                                        {u.status}
-                                    </span>
+                                    <div className="flex items-center justify-center gap-2">
+                                        <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase">
+                                            {u.status}
+                                        </span>
+                                        {currentUser?.role === 'Administrator' && currentUser.id !== u.id && (
+                                            <button
+                                                onClick={() => {
+                                                    if (window.confirm('Are you sure you want to delete this user?')) {
+                                                        setUsers(users.filter(user => user.id !== u.id));
+                                                    }
+                                                }}
+                                                className="p-1 hover:bg-red-100 rounded-full text-red-500 transition-colors ml-2"
+                                                title="Delete User"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}

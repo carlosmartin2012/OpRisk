@@ -160,7 +160,17 @@ function App() {
                 />
             )}
 
-            {currentView === ViewState.CONTROL_TESTING && <ControlTesting language={language} user={user} />}
+            {currentView === ViewState.CONTROL_TESTING && (
+                <ControlTesting
+                    language={language}
+                    user={user}
+                    controls={controls}
+                    setControls={setControls}
+                    departments={departments}
+                    processes={processes}
+                    risks={risks}
+                />
+            )}
 
             {currentView === ViewState.CAPITAL && <CapitalEngine user={user} />}
 
