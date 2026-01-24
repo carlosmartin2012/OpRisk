@@ -8,149 +8,173 @@ import RCSA from './components/RCSA';
 import ControlTesting from './components/ControlTesting';
 import CapitalEngine from './components/CapitalEngine';
 import AuditLogs from './components/AuditLogs';
-import { ViewState, User, Language, UserRole } from './types';
-import { Users, MoreVertical, Shield, User as UserIcon, Briefcase, Eye } from 'lucide-react';
+import UserManagement from './components/UserManagement';
+import { ViewState, User, Language, Department, Process, RiskItem, Control, OpEvent, EBA_EVENT_TYPES, BUSINESS_LINES } from './types';
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [currentView, setCurrentView] = useState<ViewState>(ViewState.DASHBOARD);
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [language, setLanguage] = useState<Language>('EN');
+    const [user, setUser] = useState<User | null>(null);
+    const [currentView, setCurrentView] = useState<ViewState>(ViewState.DASHBOARD);
+    const [isDarkMode, setIsDarkMode] = useState(true);
+    const [language, setLanguage] = useState<Language>('EN');
 
-  // Initialize theme
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
+    // --- GLOBAL STATE ---
 
-  const toggleTheme = () => setIsDarkMode(!isDarkMode);
-
-  const handleLogin = (user: User) => {
-    setUser(user);
-    setCurrentView(ViewState.DASHBOARD);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    setCurrentView(ViewState.LOGIN);
-  };
-
-  // --- User Management Component (Internal) ---
-  const UserManagement = () => {
-    // Mock user list
-    const [mockUsers, setMockUsers] = useState<User[]>([
+    // 1. Users
+    const [users, setUsers] = useState<User[]>([
         { id: 'U1', email: 'risk.head@nfq.es', name: 'Maria Garcia', role: 'OpRisk', department: 'Risk Dept', lastLogin: '2023-10-26 09:30', status: 'Active' },
         { id: 'U2', email: 'trader.lead@nfq.es', name: 'John Smith', role: 'First Line', department: 'Trading', lastLogin: '2023-10-25 14:20', status: 'Active' },
         { id: 'U3', email: 'audit.senior@nfq.es', name: 'Laura Chen', role: 'Auditor', department: 'Internal Audit', lastLogin: '2023-10-26 10:00', status: 'Active' },
+        { id: 'U4', email: 'carlos.martin@nfq.es', name: 'Carlos Martin', role: 'Administrator', department: 'Management', lastLogin: '2023-10-26 11:00', status: 'Active' },
     ]);
 
-    const changeRole = (id: string, newRole: UserRole) => {
-        if (user?.role !== 'OpRisk') return; // Only Admin can change roles
-        setMockUsers(mockUsers.map(u => u.id === id ? { ...u, role: newRole } : u));
+    // 2. Departments & Processes (Shared between RCSA and Event Module)
+    const [departments, setDepartments] = useState<Department[]>([
+        { id: 'DEP-01', name: 'Retail Banking' },
+        { id: 'DEP-02', name: 'Global Markets' },
+        { id: 'DEP-03', name: 'Information Tech' },
+    ]);
+
+    const [processes, setProcesses] = useState<Process[]>([
+        { id: 'PROC-RB-01', departmentId: 'DEP-01', name: 'Card Issuance', owner: 'John Doe' },
+        { id: 'PROC-RB-02', departmentId: 'DEP-01', name: 'Mortgage Underwriting', owner: 'Jane Smith' },
+        { id: 'PROC-GM-01', departmentId: 'DEP-02', name: 'FX Trading', owner: 'Mike Ross' },
+        { id: 'PROC-IT-01', departmentId: 'DEP-03', name: 'Access Management', owner: 'Alice Tech' },
+    ]);
+
+    // 3. Risks & Controls (RCSA)
+    const [risks, setRisks] = useState<RiskItem[]>([
+        {
+            id: 'R-001', processId: 'PROC-RB-01', description: 'Unauthorized issuance',
+            inherentProb: 4, inherentImpact: 5, residualProb: 2, residualImpact: 3, controlIds: ['CTRL-01', 'CTRL-02']
+        },
+        {
+            id: 'R-002', processId: 'PROC-RB-01', description: 'Data Leakage',
+            inherentProb: 5, inherentImpact: 5, residualProb: 3, residualImpact: 4, controlIds: ['CTRL-05']
+        },
+        {
+            id: 'R-003', processId: 'PROC-GM-01', description: 'Settlement Fail',
+            inherentProb: 3, inherentImpact: 4, residualProb: 2, residualImpact: 2, controlIds: []
+        },
+        {
+            id: 'R-004', processId: 'PROC-IT-01', description: 'Privilege Escalation',
+            inherentProb: 5, inherentImpact: 4, residualProb: 4, residualImpact: 2, controlIds: []
+        }
+    ]);
+
+    const [controls, setControls] = useState<Control[]>([
+        { id: 'CTRL-01', riskId: 'R-001', description: 'Dual authentication', type: 'Preventive', frequency: 'Daily', testingFrequency: 'Monthly', status: 'Tested', owner: 'Sec Team' },
+        { id: 'CTRL-02', riskId: 'R-001', description: 'Daily reconcilation', type: 'Detective', frequency: 'Daily', testingFrequency: 'Monthly', status: 'Validated', owner: 'Ops Team' },
+        { id: 'CTRL-05', riskId: 'R-002', description: 'Vendor check', type: 'Preventive', frequency: 'Quarterly', testingFrequency: 'Annually', status: 'Validated', owner: 'Risk Team' }
+    ]);
+
+    // 4. Events (Event Module)
+    const [events, setEvents] = useState<OpEvent[]>([
+        {
+            id: "EVT-2023-001",
+            dateDiscovery: "2023-10-15",
+            title: "ATM Skimming North",
+            amount: 45000,
+            currency: "EUR",
+            eventType: EBA_EVENT_TYPES[1], // External Fraud
+            eventTypeLevel2: "Theft and Fraud",
+            businessLine: "Retail Banking",
+            processId: "PROC-RB-01",
+            employeeEmail: "branch.manager@nfq.es",
+            department: "Retail Network North",
+            status: "Approved",
+            auditTrail: [{ date: "2023-10-16 10:00", user: "system", action: "Created via CSV" }]
+        },
+        {
+            id: "EVT-2023-002",
+            dateDiscovery: "2023-10-18",
+            title: "Settlement Error",
+            amount: 12500,
+            currency: "EUR",
+            eventType: EBA_EVENT_TYPES[6], // Execution...
+            eventTypeLevel2: "Transaction Capture, Execution & Maintenance",
+            businessLine: "Trading & Sales",
+            processId: "PROC-GM-01",
+            employeeEmail: "trader.joe@nfq.es",
+            department: "Global Markets",
+            status: "Pending Validation",
+            auditTrail: [{ date: "2023-10-18 14:30", user: "system", action: "Created via CSV" }]
+        }
+    ]);
+
+    // Initialize theme
+    useEffect(() => {
+        if (isDarkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [isDarkMode]);
+
+    const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
+    const handleLogin = (user: User) => {
+        setUser(user);
+        setCurrentView(ViewState.DASHBOARD);
     };
 
+    const handleLogout = () => {
+        setUser(null);
+        setCurrentView(ViewState.LOGIN);
+    };
+
+    if (!user) {
+        return <Login onLogin={handleLogin} users={users} setUsers={setUsers} />;
+    }
+
     return (
-        <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">User Management</h2>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">Manage platform access and role-based permissions.</p>
-            </div>
-            
-            <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
-                 <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/5 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
-                            <th className="py-4 px-6">User</th>
-                            <th className="py-4 px-6">Department</th>
-                            <th className="py-4 px-6">Role</th>
-                            <th className="py-4 px-6">Last Login</th>
-                            <th className="py-4 px-6 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-white/5">
-                        {mockUsers.map(u => (
-                            <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                <td className="py-4 px-6">
-                                    <div className="flex items-center">
-                                        <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold mr-3">
-                                            {u.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-900 dark:text-white">{u.name}</p>
-                                            <p className="text-xs text-slate-500">{u.email}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">{u.department}</td>
-                                <td className="py-4 px-6">
-                                    {user?.role === 'OpRisk' ? (
-                                        <div className="flex items-center gap-2">
-                                            <select 
-                                                value={u.role}
-                                                onChange={(e) => changeRole(u.id, e.target.value as UserRole)}
-                                                className="bg-transparent border border-slate-300 dark:border-white/10 rounded px-2 py-1 text-xs font-medium focus:ring-1 focus:ring-brand-brown text-slate-700 dark:text-slate-200"
-                                            >
-                                                <option value="OpRisk">OpRisk</option>
-                                                <option value="First Line">First Line</option>
-                                                <option value="Auditor">Auditor</option>
-                                            </select>
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center gap-2">
-                                             {u.role === 'OpRisk' && <Shield className="w-3 h-3 text-red-500"/>}
-                                             {u.role === 'First Line' && <Briefcase className="w-3 h-3 text-blue-500"/>}
-                                             {u.role === 'Auditor' && <Eye className="w-3 h-3 text-amber-500"/>}
-                                             <span className="text-sm text-slate-700 dark:text-slate-300">{u.role}</span>
-                                        </div>
-                                    )}
-                                </td>
-                                <td className="py-4 px-6 text-xs text-slate-500 font-mono">{u.lastLogin}</td>
-                                <td className="py-4 px-6 text-center">
-                                    <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase">
-                                        {u.status}
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                 </table>
-            </div>
-            {user?.role !== 'OpRisk' && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 rounded-lg text-sm text-blue-700 dark:text-blue-300">
-                    You are viewing this page as <strong>{user?.role}</strong>. Only <strong>OpRisk</strong> admins can modify user roles.
-                </div>
+        <Layout
+            currentView={currentView}
+            setView={setCurrentView}
+            user={user}
+            onLogout={handleLogout}
+            isDarkMode={isDarkMode}
+            toggleTheme={toggleTheme}
+            language={language}
+            setLanguage={setLanguage}
+        >
+            {currentView === ViewState.DASHBOARD && <Dashboard />}
+
+            {currentView === ViewState.DATA && (
+                <EventModule
+                    language={language}
+                    user={user}
+                    events={events}
+                    setEvents={setEvents}
+                    departments={departments}
+                    processes={processes}
+                />
             )}
-        </div>
+
+            {currentView === ViewState.RCSA && (
+                <RCSA
+                    language={language}
+                    departments={departments} setDepartments={setDepartments}
+                    processes={processes} setProcesses={setProcesses}
+                    risks={risks} setRisks={setRisks}
+                    controls={controls} setControls={setControls}
+                />
+            )}
+
+            {currentView === ViewState.CONTROL_TESTING && <ControlTesting language={language} user={user} />}
+
+            {currentView === ViewState.CAPITAL && <CapitalEngine user={user} />}
+
+            {currentView === ViewState.AUDIT_LOGS && <AuditLogs language={language} />}
+
+            {currentView === ViewState.USERS && (
+                <UserManagement
+                    users={users}
+                    setUsers={setUsers}
+                    currentUser={user}
+                />
+            )}
+        </Layout>
     );
-  };
-
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
-
-  return (
-    <Layout 
-      currentView={currentView} 
-      setView={setCurrentView} 
-      user={user}
-      onLogout={handleLogout}
-      isDarkMode={isDarkMode}
-      toggleTheme={toggleTheme}
-      language={language}
-      setLanguage={setLanguage}
-    >
-      {currentView === ViewState.DASHBOARD && <Dashboard />}
-      {currentView === ViewState.DATA && <EventModule language={language} user={user} />}
-      {currentView === ViewState.RCSA && <RCSA language={language} />}
-      {currentView === ViewState.CONTROL_TESTING && <ControlTesting language={language} user={user} />}
-      {currentView === ViewState.CAPITAL && <CapitalEngine user={user} />}
-      {currentView === ViewState.AUDIT_LOGS && <AuditLogs language={language} />}
-      {currentView === ViewState.USERS && <UserManagement />}
-    </Layout>
-  );
 }
 
 export default App;

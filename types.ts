@@ -43,8 +43,10 @@ export interface OpEvent {
   amount: number;
   currency: string;
   eventType: string; // EBA Level 1
+  eventTypeLevel2: string; // EBA Level 2
   businessLine: string;
-  processId: string;
+  processId: string; // Added field
+
   status: 'Draft' | 'Pending Validation' | 'Approved' | 'Rejected';
   auditTrail: Partial<AuditLog>[];
 }
@@ -94,15 +96,44 @@ export interface FinancialData {
   avgAnnualLoss: number; // For ILM
 }
 
-export const EBA_EVENT_TYPES = [
-  "Internal Fraud",
-  "External Fraud",
-  "Employment Practices & Workplace Safety",
-  "Clients, Products & Business Practices",
-  "Damage to Physical Assets",
-  "Business Disruption & System Failures",
-  "Execution, Delivery & Process Management"
-];
+export const EBA_EVENT_TYPES_HIERARCHY: Record<string, string[]> = {
+  "Internal Fraud": [
+    "Unauthorized Activity",
+    "Theft and Fraud"
+  ],
+  "External Fraud": [
+    "Theft and Fraud",
+    "Systems Security"
+  ],
+  "Employment Practices & Workplace Safety": [
+    "Employee Relations",
+    "Safe Environment",
+    "Diversity & Discrimination"
+  ],
+  "Clients, Products & Business Practices": [
+    "Suitability, Disclosure & Fiduciary",
+    "Improper Business or Market Practices",
+    "Product Flaws",
+    "Selection, Sponsorship & Exposure",
+    "Advisory Activities"
+  ],
+  "Damage to Physical Assets": [
+    "Disasters and other events"
+  ],
+  "Business Disruption & System Failures": [
+    "Systems"
+  ],
+  "Execution, Delivery & Process Management": [
+    "Transaction Capture, Execution & Maintenance",
+    "Monitoring and Reporting",
+    "Customer Intake and Documentation",
+    "Customer / Client Account Management",
+    "Trade Counterparties",
+    "Vendors & Suppliers"
+  ]
+};
+
+export const EBA_EVENT_TYPES = Object.keys(EBA_EVENT_TYPES_HIERARCHY);
 
 export const BUSINESS_LINES = [
   "Corporate Finance",
