@@ -170,30 +170,112 @@ const Layout: React.FC<LayoutProps> = ({
               <button onClick={() => setManualOpen(false)}><X className="w-6 h-6 text-slate-400 hover:text-slate-600" /></button>
             </div>
 
-            <div className="prose dark:prose-invert max-w-none space-y-4">
+            <div className="prose dark:prose-invert max-w-none space-y-4 pb-10">
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">App Overview</h3>
+                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">Welcome to ALQUID OpRisk</h3>
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  ALQUID OpRisk is a comprehensive platform for managing Operational Risk.
-                  It allows 1st and 2nd lines of defense to identify, assess, monitor, and report operational risks and events.
+                  The advanced platform for Operational Risk Management, designed for NFQ and global financial institutions.
+                  This manual provides a detailed guide on how to utilize each module effectively.
                 </p>
               </div>
 
-              <div>
-                <h4 className="font-bold">Key Modules</h4>
-                <ul className="list-disc pl-5 text-sm space-y-2 text-slate-600 dark:text-slate-300 mt-2">
-                  <li><strong>Dashboard:</strong> High-level overview of risk metrics.</li>
-                  <li><strong>Data:</strong> Registry of operational risk events (loss data).</li>
-                  <li><strong>RCSA:</strong> Risk & Control Self-Assessment for departments and processes.</li>
-                  <li><strong>Control Testing:</strong> Execution and validation of controls.</li>
-                  <li><strong>Capital Engine:</strong> Calculation of regulatory capital (SMA).</li>
-                </ul>
+              <div className="space-y-6 mt-6">
+                <section>
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <LayoutDashboard className="w-5 h-5 mr-2 text-brand-brown" /> Dashboard
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    The <strong>Dashboard</strong> provides a high-level overview of the organization's risk profile.
+                  </p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li><strong>Key Metrics:</strong> Monitor Total Loss, Event Count, and Capital Requirements at a glance.</li>
+                    <li><strong>Trends:</strong> Analyze loss evolution over time to identify seasonal spikes or improvements.</li>
+                    <li><strong>Heatmaps:</strong> Visualize risk concentration by Business Line and Event Type.</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <Database className="w-5 h-5 mr-2 text-brand-brown" /> Data Module (Events)
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    The central repository for internal operational risk loss events.
+                  </p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li><strong>Create Event:</strong> Click "+ New Event" to report a loss. Fill in mandatory fields like Date, Amount, EBA Event Type (Level 1 & 2), and Business Line.</li>
+                    <li><strong>Import:</strong> Use the "Upload CSV" button to bulk import events via drag-and-drop. Supported formats: .csv, .xls.</li>
+                    <li><strong>Validation:</strong> 'OpRisk' and 'Administrator' users can review pending events and Approve or Reject them.</li>
+                    <li><strong>Editing:</strong> 1st Line users can edit their own events while they are in 'Pending' status.</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <ShieldCheck className="w-5 h-5 mr-2 text-brand-brown" /> RCSA (Self-Assessment)
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    Manage the organizational hierarchy and assess risks and controls.
+                  </p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li><strong>Hierarchy Tree:</strong> Navigate through Departments {'>'} Processes {'>'} Risks.</li>
+                    <li><strong>Create Items:</strong> Use the small "+" button next to headers to add Departments, Processes, Risks, or Controls dynamically.</li>
+                    <li><strong>Neural Map:</strong> Switch to 'Map View' to visualize the interconnections between risks and processes in an interactive node graph.</li>
+                    <li><strong>Assessment:</strong> View Inherent vs. Residual risk scores based on control mitigation.</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <CheckSquare className="w-5 h-5 mr-2 text-brand-brown" /> Control Testing
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    Execute and verify the effectiveness of controls linked to risks.
+                  </p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li><strong>Test Execution:</strong> Select a control and perform a test (e.g., "Sample check of 5 items").</li>
+                    <li><strong>Outcome:</strong> Mark results as "Effective", "Ineffective", or "Not Applicable".</li>
+                    <li><strong>Evidence:</strong> Attach evidence summaries to the test result.</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <Calculator className="w-5 h-5 mr-2 text-brand-brown" /> Capital Engine
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    Standardized Measurement Approach (SMA) calculator for regulatory capital.
+                  </p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li><strong>BI Component:</strong> Inputs for Business Indicator (Interest, Service, Financial components).</li>
+                    <li><strong>ILM Component:</strong> Internal Loss Multiplier calculation based on historical losses (10-year window).</li>
+                    <li><strong>Output:</strong> Real-time calculation of Baseline Capital Requirements.</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <Users className="w-5 h-5 mr-2 text-brand-brown" /> User Management
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    Manage access and roles.
+                  </p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li><strong>Roles:</strong>
+                      <ul className="pl-4 list-circle mt-1">
+                        <li><em>Administrator:</em> Full access (System & Business).</li>
+                        <li><em>OpRisk:</em> Validation and oversight authority.</li>
+                        <li><em>First Line:</em> Can report events and view their own data.</li>
+                      </ul>
+                    </li>
+                    <li><strong>Access:</strong> Administrators can add users and reset permissions.</li>
+                  </ul>
+                </section>
               </div>
 
               <div className="pt-6 border-t border-slate-200 dark:border-white/10">
-                <button className="w-full flex items-center justify-center px-4 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:opacity-90 transition-opacity">
+                <button className="w-full flex items-center justify-center px-4 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:opacity-90 transition-opacity shadow-lg">
                   <Download className="w-5 h-5 mr-2" />
-                  Download Full Manual (PDF)
+                  Download Full PDF Documentation
                 </button>
               </div>
             </div>

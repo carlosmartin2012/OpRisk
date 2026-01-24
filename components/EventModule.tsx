@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Search, Filter, Upload, MoreVertical, CheckCircle, XCircle, Edit, Save, X } from 'lucide-react';
 import { EBA_EVENT_TYPES, EBA_EVENT_TYPES_HIERARCHY, BUSINESS_LINES, OpEvent, Language, TRANSLATIONS, User, Department, Process } from '../types';
+import ImportDrawer from './ImportDrawer';
 
 interface EventModuleProps {
     language: Language;
@@ -12,17 +13,199 @@ interface EventModuleProps {
     processes: Process[];
 }
 
+// Reusable Form Component - Extracted to prevent focus loss
+const EventForm = ({
+    data,
+    setData,
+    onSubmit,
+    title,
+    onClose,
+    departments,
+    processes
+}: {
+    data: OpEvent,
+    setData: (d: OpEvent) => void,
+    onSubmit: (e: React.FormEvent) => void,
+    title: string,
+    onClose: () => void,
+    departments: Department[],
+    processes: Process[]
+}) => {
+    // Filter processes based on department if possible
+    const currentDeptId = departments.find(d => d.name === data.department)?.id;
+    const filteredProcesses = currentDeptId
+        ? processes.filter(p => p.departmentId === currentDeptId)
+        : processes;
+
+    return (
+        <div className="fixed inset-0 z-50 flex justify-end">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="relative w-full max-w-md bg-white dark:bg-slate-900 h-full shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
+                <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-white dark:bg-slate-900 sticky top-0 z-10">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h3>
+                    <button onClick={onClose} className="text-slate-500 hover:text-red-500">
+                        <X className="w-6 h-6" />
+                    </button>
+                </div>
+                <form onSubmit={onSubmit} className="p-6 space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Title</label>
+                        <input
+                            type="text"
+                            required
+                            value={data.title}
+                            onChange={(e) => setData({ ...data, title: e.target.value })}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                            placeholder="e.g., ATM Malfunction"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Date of Discovery</label>
+                        <input
+                            type="date"
+                            required
+                            value={data.dateDiscovery}
+                            onChange={(e) => setData({ ...data, dateDiscovery: e.target.value })}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                        />
+                    </div>
+
+                    {/* EBA Event Type Selector Level 1 */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Event Type (EBA Level 1)</label>
+                        <select
+                            value={data.eventType}
+                            onChange={(e) => {
+                                const newType = e.target.value;
+                                setData({
+                                    ...data,
+                                    eventType: newType,
+                                    // Reset Level 2 when Level 1 changes
+                                    eventTypeLevel2: EBA_EVENT_TYPES_HIERARCHY[newType]?.[0] || ''
+                                });
+                            }}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                        >
+                            {EBA_EVENT_TYPES.map(type => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* EBA Event Type Selector Level 2 */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Event Type (EBA Level 2)</label>
+                        <select
+                            value={data.eventTypeLevel2}
+                            onChange={(e) => setData({ ...data, eventTypeLevel2: e.target.value })}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                        >
+                            {EBA_EVENT_TYPES_HIERARCHY[data.eventType]?.map(type => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Business Line Selector */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Business Line</label>
+                        <select
+                            value={data.businessLine}
+                            onChange={(e) => setData({ ...data, businessLine: e.target.value })}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                        >
+                            {BUSINESS_LINES.map(line => (
+                                <option key={line} value={line}>{line}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Department Selector */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Department / Area</label>
+                        <select
+                            value={data.department}
+                            onChange={(e) => setData({ ...data, department: e.target.value })}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                        >
+                            <option value="">Select Department...</option>
+                            {departments.map(dept => (
+                                <option key={dept.id} value={dept.name}>{dept.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Process Selector */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Process</label>
+                        <select
+                            value={data.processId}
+                            onChange={(e) => setData({ ...data, processId: e.target.value })}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                        >
+                            <option value="">Select Process...</option>
+                            {filteredProcesses.map(proc => (
+                                <option key={proc.id} value={proc.id}>{proc.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Amount (€)</label>
+                        <input
+                            type="number"
+                            required
+                            value={data.amount}
+                            onChange={(e) => setData({ ...data, amount: Number(e.target.value) })}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Description</label>
+                        <textarea
+                            rows={4}
+                            required
+                            value={data.description}
+                            onChange={(e) => setData({ ...data, description: e.target.value })}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
+                        />
+                    </div>
+                    <div className="pt-4 flex justify-end">
+                        <button type="submit" className="flex items-center px-4 py-2 bg-brand-brown hover:bg-orange-800 text-white rounded-lg">
+                            <Save className="w-4 h-4 mr-2" /> Save
+                        </button>
+                    </div>
+                    {data.auditTrail.length > 0 && (
+                        <div className="mt-8 border-t border-slate-200 dark:border-white/10 pt-4">
+                            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Audit Trail</h4>
+                            <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {data.auditTrail.map((log, i) => (
+                                    <div key={i} className="text-xs text-slate-500 border-l-2 border-slate-300 pl-2">
+                                        <span className="font-semibold">{log.date}</span> - {log.action} ({log.user})
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </form>
+            </div>
+        </div>
+    );
+};
+
 const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEvents, departments, processes }) => {
     const t = TRANSLATIONS[language];
     const [activeActionId, setActiveActionId] = useState<string | null>(null);
 
     // Permissions Logic
-    const canEdit = user?.role === 'OpRisk' || user?.role === 'First Line';
-    const canValidate = user?.role === 'OpRisk';
+    // Administrator has full permissions
+    const canEdit = user?.role === 'OpRisk' || user?.role === 'First Line' || user?.role === 'Administrator';
+    const canValidate = user?.role === 'OpRisk' || user?.role === 'Administrator';
 
     // State
     const [editingEvent, setEditingEvent] = useState<OpEvent | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
 
     // New Event Template
     const emptyEvent: OpEvent = {
@@ -44,13 +227,14 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
 
     const [newEvent, setNewEvent] = useState<OpEvent>(emptyEvent);
 
-    const handleCsvImport = () => {
-        // Simulating CSV Import with new fields
+    const handleCsvImport = (files: File[]) => {
+        // Simulating CSV Import
+        // Using files argument to simulate responsiveness
         const importedEvents: OpEvent[] = [
             {
                 id: `EVT-${new Date().getFullYear()}-${String(events.length + 1).padStart(3, '0')}`,
                 dateDiscovery: new Date().toISOString().split('T')[0],
-                title: "Imported Data Breach",
+                title: `Imported from ${files[0].name}`,
                 amount: 50000,
                 currency: "EUR",
                 eventType: "Clients, Products & Business Practices",
@@ -154,185 +338,6 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
         );
     };
 
-    // Reusable Form Component
-    const EventForm = ({
-        data,
-        setData,
-        onSubmit,
-        title,
-        onClose
-    }: {
-        data: OpEvent,
-        setData: (d: OpEvent) => void,
-        onSubmit: (e: React.FormEvent) => void,
-        title: string,
-        onClose: () => void
-    }) => {
-        // Filter processes based on department if possible
-        // Assuming 'department' field in OpEvent stores the Name, but process has departmentId. 
-        // We need to map Name back to ID or store ID in OpEvent. 
-        // OpEvent currently has 'department' string. Let's try to match by name for filtering.
-        const currentDeptId = departments.find(d => d.name === data.department)?.id;
-        const filteredProcesses = currentDeptId
-            ? processes.filter(p => p.departmentId === currentDeptId)
-            : processes;
-
-        return (
-            <div className="fixed inset-0 z-50 flex justify-end">
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
-                <div className="relative w-full max-w-md bg-white dark:bg-slate-900 h-full shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
-                    <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-white dark:bg-slate-900 sticky top-0 z-10">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h3>
-                        <button onClick={onClose} className="text-slate-500 hover:text-red-500">
-                            <X className="w-6 h-6" />
-                        </button>
-                    </div>
-                    <form onSubmit={onSubmit} className="p-6 space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Title</label>
-                            <input
-                                type="text"
-                                required
-                                value={data.title}
-                                onChange={(e) => setData({ ...data, title: e.target.value })}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
-                                placeholder="e.g., ATM Malfunction"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Date of Discovery</label>
-                            <input
-                                type="date"
-                                required
-                                value={data.dateDiscovery}
-                                onChange={(e) => setData({ ...data, dateDiscovery: e.target.value })}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
-                            />
-                        </div>
-
-                        {/* EBA Event Type Selector Level 1 */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Event Type (EBA Level 1)</label>
-                            <select
-                                value={data.eventType}
-                                onChange={(e) => {
-                                    const newType = e.target.value;
-                                    setData({
-                                        ...data,
-                                        eventType: newType,
-                                        // Reset Level 2 when Level 1 changes
-                                        eventTypeLevel2: EBA_EVENT_TYPES_HIERARCHY[newType]?.[0] || ''
-                                    });
-                                }}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
-                            >
-                                {EBA_EVENT_TYPES.map(type => (
-                                    <option key={type} value={type}>{type}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* EBA Event Type Selector Level 2 */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Event Type (EBA Level 2)</label>
-                            <select
-                                value={data.eventTypeLevel2}
-                                onChange={(e) => setData({ ...data, eventTypeLevel2: e.target.value })}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
-                            >
-                                {EBA_EVENT_TYPES_HIERARCHY[data.eventType]?.map(type => (
-                                    <option key={type} value={type}>{type}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Business Line Selector */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Business Line</label>
-                            <select
-                                value={data.businessLine}
-                                onChange={(e) => setData({ ...data, businessLine: e.target.value })}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
-                            >
-                                {BUSINESS_LINES.map(line => (
-                                    <option key={line} value={line}>{line}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Department Selector */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Department / Area</label>
-                            <select
-                                value={data.department}
-                                onChange={(e) => setData({ ...data, department: e.target.value })}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
-                            >
-                                <option value="">Select Department...</option>
-                                {departments.map(dept => (
-                                    <option key={dept.id} value={dept.name}>{dept.name}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Process Selector */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Process</label>
-                            <select
-                                value={data.processId}
-                                onChange={(e) => setData({ ...data, processId: e.target.value })}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
-                            >
-                                <option value="">Select Process...</option>
-                                {filteredProcesses.map(proc => (
-                                    <option key={proc.id} value={proc.id}>{proc.name}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Amount (€)</label>
-                            <input
-                                type="number"
-                                required
-                                value={data.amount}
-                                onChange={(e) => setData({ ...data, amount: Number(e.target.value) })}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Description</label>
-                            <textarea
-                                rows={4}
-                                required
-                                value={data.description}
-                                onChange={(e) => setData({ ...data, description: e.target.value })}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
-                            />
-                        </div>
-                        <div className="pt-4 flex justify-end">
-                            <button type="submit" className="flex items-center px-4 py-2 bg-brand-brown hover:bg-orange-800 text-white rounded-lg">
-                                <Save className="w-4 h-4 mr-2" /> Save
-                            </button>
-                        </div>
-                        {data.auditTrail.length > 0 && (
-                            <div className="mt-8 border-t border-slate-200 dark:border-white/10 pt-4">
-                                <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Audit Trail</h4>
-                                <div className="space-y-2 max-h-40 overflow-y-auto">
-                                    {data.auditTrail.map((log, i) => (
-                                        <div key={i} className="text-xs text-slate-500 border-l-2 border-slate-300 pl-2">
-                                            <span className="font-semibold">{log.date}</span> - {log.action} ({log.user})
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </form>
-                </div>
-            </div>
-        );
-    };
-
     return (
         <div className="space-y-6" onClick={() => setActiveActionId(null)}>
             <div className="flex flex-col md:flex-row md:items-center justify-between">
@@ -351,7 +356,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
                                 {t.createEvent}
                             </button>
                             <button
-                                onClick={(e) => { e.stopPropagation(); handleCsvImport(); }}
+                                onClick={(e) => { e.stopPropagation(); setIsImporting(true); }}
                                 className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors"
                             >
                                 <Upload className="w-4 h-4 mr-2" />
@@ -473,6 +478,14 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
                 </div>
             </div>
 
+            {/* Import Drawer */}
+            <ImportDrawer
+                isOpen={isImporting}
+                onClose={() => setIsImporting(false)}
+                title="Import Operational Events"
+                onImport={handleCsvImport}
+            />
+
             {/* Edit Drawer (Existing Event) */}
             {editingEvent && (
                 <EventForm
@@ -481,6 +494,8 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
                     onSubmit={saveEdit}
                     title={`Edit Event: ${editingEvent.id}`}
                     onClose={() => setEditingEvent(null)}
+                    departments={departments}
+                    processes={processes}
                 />
             )}
 
@@ -492,6 +507,8 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
                     onSubmit={handleCreateEvent}
                     title="Create New Operational Event"
                     onClose={() => { setIsCreating(false); setNewEvent(emptyEvent); }}
+                    departments={departments}
+                    processes={processes}
                 />
             )}
         </div>
