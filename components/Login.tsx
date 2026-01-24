@@ -13,19 +13,12 @@ interface LoginProps {
 // Logo matching the new brand design
 const AlquidLogo = () => (
     <svg width="180" height="70" viewBox="0 0 960 360" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
-        {/* Gray A structure */}
-        <path d="M70 300 L140 60 L210 300" stroke="#888888" strokeWidth="40" fill="none" strokeLinecap="square" />
-        <path d="M100 200 L180 200" stroke="#888888" strokeWidth="35" strokeLinecap="square" />
-
-        {/* Brown overlay triangle on right side of A */}
-        <path d="M140 60 L180 200 L140 200 Z" fill="#8B4513" />
-
         {/* Gray "alquid" text */}
-        <text x="280" y="240" fontFamily="Arial, sans-serif" fontSize="180" fontWeight="bold" fill="#888888">alquid</text>
+        <text x="70" y="240" fontFamily="Arial, sans-serif" fontSize="180" fontWeight="bold" fill="#888888">alquid</text>
 
         {/* Brown OpRisk bar */}
-        <rect x="305" y="280" width="620" height="55" fill="#8B4513" />
-        <text x="615" y="325" fontFamily="Arial, sans-serif" fontSize="36" fontWeight="bold" fill="white" textAnchor="middle">OpRisk</text>
+        <rect x="95" y="280" width="620" height="55" fill="#8B4513" />
+        <text x="405" y="325" fontFamily="Arial, sans-serif" fontSize="36" fontWeight="bold" fill="white" textAnchor="middle">OpRisk</text>
     </svg>
 );
 

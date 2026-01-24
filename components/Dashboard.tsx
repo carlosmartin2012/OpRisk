@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   BarChart,
   Bar,
@@ -16,31 +16,12 @@ import {
   Area
 } from 'recharts';
 import { TrendingUp, AlertOctagon, CheckCircle, DollarSign, Calculator, Settings, Filter, X, Shield, ArrowRight } from 'lucide-react';
-import { BUSINESS_LINES } from '../types';
+import { OpEvent, Control } from '../types';
 
-const dataLossTrend = [
-  { name: 'Jan', loss: 4000 },
-  { name: 'Feb', loss: 3000 },
-  { name: 'Mar', loss: 2000 },
-  { name: 'Apr', loss: 2780 },
-  { name: 'May', loss: 1890 },
-  { name: 'Jun', loss: 2390 },
-  { name: 'Jul', loss: 3490 },
-];
-
-const dataRiskType = [
-  { name: 'Ext. Fraud', value: 400 },
-  { name: 'Int. Fraud', value: 300 },
-  { name: 'Execution', value: 300 },
-  { name: 'Business', value: 200 },
-];
-
-// Mock Data for Controls awaiting validation
-const pendingControls = [
-  { id: 'CTRL-02', name: 'Daily reconciliation report', department: 'Ops Team', testedDate: '2023-10-20' },
-  { id: 'CTRL-09', name: 'Trader Limit Review', department: 'Trading & Sales', testedDate: '2023-10-22' },
-  { id: 'CTRL-14', name: 'Firewall Log Audit', department: 'IT Security', testedDate: '2023-10-23' },
-];
+interface DashboardProps {
+  events: OpEvent[];
+  controls: Control[];
+}
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -64,15 +45,68 @@ const StatCard = ({ title, value, trend, icon: Icon, color }: any) => (
   </div>
 );
 
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC<DashboardProps> = ({ events, controls }) => {
   const [showSettings, setShowSettings] = useState(false);
 
   // Customization State
   const [criticalThreshold, setCriticalThreshold] = useState(10000);
   const [targetRCSA, setTargetRCSA] = useState(90);
 
-  // Fake filtered data logic
-  const criticalIncidentsCount = 14 + (criticalThreshold < 5000 ? 5 : 0) - (criticalThreshold > 20000 ? 5 : 0);
+  // Calculate real statistics from events
+  const stats = useMemo(() => {
+    const totalLoss = events.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const criticalCount = events.filter(e => (e.amount || 0) > criticalThreshold).length;
+
+    // RCSA completion based on controls
+    const validatedControls = controls.filter(c => c.status === 'Validated').length;
+    const rcsaCompletion = controls.length > 0 ? Math.round((validatedControls / controls.length) * 100) : 0;
+
+    return {
+      totalLoss,
+      criticalCount,
+      rcsaCompletion
+    };
+  }, [events, controls, criticalThreshold]);
+
+  // Group events by type for pie chart
+  const dataRiskType = useMemo(() => {
+    const typeGroups: Record<string, number> = {};
+    events.forEach(e => {
+      const type = e.eventType || 'Unknown';
+      typeGroups[type] = (typeGroups[type] || 0) + (e.amount || 0);
+    });
+
+    return Object.entries(typeGroups).map(([name, value]) => ({
+      name: name.length > 20 ? name.substring(0, 17) + '...' : name,
+      value: Math.round(value)
+    }));
+  }, [events]);
+
+  // Pending controls for validation
+  const pendingControls = useMemo(() => {
+    return controls.filter(c => c.status === 'Tested').slice(0, 3);
+  }, [controls]);
+
+  // Loss trend by month (last 6 months)
+  const dataLossTrend = useMemo(() => {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyData: Record<string, number> = {};
+
+    events.forEach(e => {
+      if (e.dateDiscovery) {
+        const date = new Date(e.dateDiscovery);
+        const monthKey = monthNames[date.getMonth()];
+        monthlyData[monthKey] = (monthlyData[monthKey] || 0) + (e.amount || 0);
+      }
+    });
+
+    // Get last 6 months or show all available
+    const months = Object.keys(monthlyData).length > 0
+      ? Object.entries(monthlyData).map(([name, loss]) => ({ name, loss }))
+      : [{ name: 'No Data', loss: 0 }];
+
+    return months;
+  }, [events]);
 
   return (
     <div className="space-y-6 relative">
@@ -140,24 +174,24 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="YTD Gross Loss"
-          value="€ 2.4M"
+          value={`€ ${(stats.totalLoss / 1000).toFixed(1)}K`}
           trend="+12%"
           icon={DollarSign}
           color="bg-red-500 text-red-500"
         />
         <StatCard
           title={`Critical Incidents (>€${criticalThreshold / 1000}k)`}
-          value={criticalIncidentsCount}
+          value={stats.criticalCount}
           trend="-2"
           icon={AlertOctagon}
           color="bg-orange-500 text-orange-500"
         />
         <StatCard
           title="RCSA Completion"
-          value="87%"
-          trend={87 >= targetRCSA ? "On Track" : "Lagging"}
+          value={`${stats.rcsaCompletion}%`}
+          trend={stats.rcsaCompletion >= targetRCSA ? "On Track" : "Lagging"}
           icon={CheckCircle}
-          color={87 >= targetRCSA ? "bg-emerald-500 text-emerald-500" : "bg-yellow-500 text-yellow-500"}
+          color={stats.rcsaCompletion >= targetRCSA ? "bg-emerald-500 text-emerald-500" : "bg-yellow-500 text-yellow-500"}
         />
         <StatCard
           title="Capital (SMA)"

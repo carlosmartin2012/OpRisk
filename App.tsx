@@ -150,7 +150,7 @@ function App() {
             language={language}
             setLanguage={setLanguage}
         >
-            {currentView === ViewState.DASHBOARD && <Dashboard />}
+            {currentView === ViewState.DASHBOARD && <Dashboard events={events} controls={controls} />}
 
             {currentView === ViewState.DATA && (
                 <EventModule
