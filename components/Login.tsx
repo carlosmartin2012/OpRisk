@@ -57,24 +57,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
                     setUsers(users.map(u => u.id === existingUser.id ? userWithDept : u));
                     onLogin(userWithDept);
                 } else {
-                    // Register new user
-                    const name = email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-
-                    // Auto-assign Administrator to specific email
-                    const role: UserRole = email.toLowerCase() === 'carlos.martin@nfq.es' ? 'Administrator' : 'First Line';
-
-                    const newUser: User = {
-                        id: `U-${Date.now()}`,
-                        email: email,
-                        name: name,
-                        role: role,
-                        department: 'Unassigned', // Can be updated by Admin
-                        lastLogin: new Date().toISOString(),
-                        status: 'Active'
-                    };
-
-                    setUsers([...users, newUser]);
-                    onLogin(newUser);
+                    setError('User not recognized. Please contact Administrator.');
+                    setLoading(false);
                 }
             } else {
                 setError('Access restricted to NFQ employees (@nfq.es)');
