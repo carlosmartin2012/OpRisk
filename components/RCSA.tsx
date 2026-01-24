@@ -228,8 +228,43 @@ const RCSA: React.FC<RCSAProps> = ({
                 linksArr.push({ x1: parent.x, y1: parent.y, x2: x, y2: y, id: `L-${risk.processId}-${risk.id}` });
             });
 
+            // Controls (Circle 4 - NEW)
+            const controlRadius = 680;
+            controls.forEach((control, i) => {
+                const parent = nodesArr.find(n => n.id === control.riskId);
+                if (!parent) return;
+
+                // Vector from center to parent
+                const dx = parent.x - cx;
+                const dy = parent.y - cy;
+                const baseAngle = Math.atan2(dy, dx);
+
+                const siblings = controls.filter(c => c.riskId === control.riskId);
+                const siblingIndex = siblings.findIndex(c => c.id === control.id);
+                const offset = (siblingIndex - (siblings.length - 1) / 2) * 0.1;
+
+                const angle = baseAngle + offset;
+                const x = cx + controlRadius * Math.cos(angle);
+                const y = cy + controlRadius * Math.sin(angle);
+
+                // Color by status
+                const statusColors: Record<string, string> = {
+                    'Validated': '#10b981',
+                    'Tested': '#f59e0b',
+                    'Pending': '#64748b',
+                    'Non Validated': '#ef4444'
+                };
+
+                nodesArr.push({
+                    id: control.id, x, y, type: 'control', r: 8, label: control.id,
+                    color: statusColors[control.status] || '#64748b',
+                    controlData: control
+                });
+                linksArr.push({ x1: parent.x, y1: parent.y, x2: x, y2: y, id: `L-${control.riskId}-${control.id}`, dashed: true });
+            });
+
             return { nodes: nodesArr, links: linksArr };
-        }, [departments, processes, risks]);
+        }, [departments, processes, risks, controls]);
 
         const handleMouseDown = (e: React.MouseEvent) => {
             setIsDragging(true);
@@ -280,6 +315,7 @@ const RCSA: React.FC<RCSAProps> = ({
                                 key={l.id}
                                 x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
                                 stroke="#94a3b8" strokeWidth="1" strokeOpacity="0.4"
+                                strokeDasharray={l.dashed ? "5,5" : "none"}
                             />
                         ))}
 

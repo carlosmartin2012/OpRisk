@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { Control, Language, TRANSLATIONS, User, Department, Process, RiskItem } from '../types';
 import { CheckCircle, XCircle, Upload, FileText, Clock, Lock, Filter, ArrowUpDown } from 'lucide-react';
+import ImportDrawer from './ImportDrawer';
 
 interface ControlTestingProps {
     language: Language;
@@ -24,9 +25,9 @@ const ControlTesting: React.FC<ControlTestingProps> = ({
 }) => {
     const t = TRANSLATIONS[language];
 
-    // permissions
-    const canUpload = user?.role === 'First Line' || user?.role === 'OpRisk';
-    const canValidate = user?.role === 'OpRisk';
+    // permissions - Administrator can also validate
+    const canUpload = user?.role === 'First Line' || user?.role === 'OpRisk' || user?.role === 'Administrator';
+    const canValidate = user?.role === 'OpRisk' || user?.role === 'Administrator';
 
     // Filters State
     const [filterDept, setFilterDept] = useState<string>('');
@@ -38,9 +39,28 @@ const ControlTesting: React.FC<ControlTestingProps> = ({
     // Sort State
     const [sortConfig, setSortConfig] = useState<{ key: keyof Control; direction: 'asc' | 'desc' } | null>(null);
 
+    // Import Modal State
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [selectedControlForImport, setSelectedControlForImport] = useState<string | null>(null);
+
     const handleUpload = (id: string) => {
         if (!canUpload) return;
-        setControls(controls.map(c => c.id === id ? { ...c, status: 'Tested', evidence: `evidence_${Date.now()}.pdf`, lastTested: new Date().toISOString().split('T')[0] } : c));
+        // Open import modal instead of direct upload
+        setSelectedControlForImport(id);
+        setShowImportModal(true);
+    };
+
+    const handleImportSubmit = (files: File[]) => {
+        if (selectedControlForImport) {
+            setControls(controls.map(c => c.id === selectedControlForImport ? {
+                ...c,
+                status: 'Tested',
+                evidence: files.map(f => f.name).join(', '),
+                lastTested: new Date().toISOString().split('T')[0]
+            } : c));
+        }
+        setShowImportModal(false);
+        setSelectedControlForImport(null);
     };
 
     const handleValidate = (id: string) => {
@@ -282,6 +302,14 @@ const ControlTesting: React.FC<ControlTestingProps> = ({
                 </table>
                 {processedControls.length === 0 && <div className="p-8 text-center text-slate-500">No controls match filters.</div>}
             </div>
+
+            {/* Import Evidence Modal */}
+            <ImportDrawer
+                isOpen={showImportModal}
+                onClose={() => { setShowImportModal(false); setSelectedControlForImport(null); }}
+                title="Upload Control Evidence"
+                onImport={handleImportSubmit}
+            />
         </div>
     );
 };

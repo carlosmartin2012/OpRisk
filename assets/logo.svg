@@ -1,0 +1,16 @@
+<!-- This is a placeholder - the actual logo will be embedded as base64 or external file -->
+<svg width="180" height="70" viewBox="0 0 960 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gray A -->
+  <path d="M70 300 L140 60 L210 300" stroke="#888888" stroke-width="40" fill="none" stroke-linecap="square"/>
+  <path d="M100 200 L180 200" stroke="#888888" stroke-width="35" stroke-linecap="square"/>
+  
+  <!-- Brown overlay on A -->
+  <path d="M140 60 L180 200 L140 200" fill="#8B4513"/>
+  
+  <!-- Gray "alquid" text -->
+  <text x="280" y="240" font-family="Arial, sans-serif" font-size="180" font-weight="bold" fill="#888888">alquid</text>
+  
+  <!-- Brown OpRisk bar -->
+  <rect x="305" y="280" width="620" height="55" fill="#8B4513"/>
+  <text x="615" y="325" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="middle">OpRisk</text>
+</svg>

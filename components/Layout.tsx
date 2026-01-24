@@ -30,29 +30,22 @@ interface LayoutProps {
   setLanguage: (lang: Language) => void;
 }
 
-// Custom Logo Component mimicking the style
+// Custom Logo Component matching the new brand design
 const AlquidLogo = () => (
-  <svg width="160" height="60" viewBox="0 0 160 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
-    <g transform="translate(5, 5)">
-      {/* Symbol A - Constructed to look like the reference */}
-      {/* Left Leg & Crossbar (Grey) */}
-      <path d="M10 38 L22 8 L27 22" stroke="#64748b" strokeWidth="6" strokeLinecap="butt" strokeLinejoin="miter" />
-      <path d="M16 28 H31" stroke="#64748b" strokeWidth="5" strokeLinecap="butt" />
+  <svg width="160" height="60" viewBox="0 0 960 360" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
+    {/* Gray A structure */}
+    <path d="M70 300 L140 60 L210 300" stroke="#888888" strokeWidth="40" fill="none" strokeLinecap="square" />
+    <path d="M100 200 L180 200" stroke="#888888" strokeWidth="35" strokeLinecap="square" />
 
-      {/* Right Leg (Brand Brown) - Overlapping */}
-      <path d="M25 18 L35 38" stroke="#8B4513" strokeWidth="6" strokeLinecap="butt" />
+    {/* Brown overlay triangle on right side of A */}
+    <path d="M140 60 L180 200 L140 200 Z" fill="#8B4513" />
 
-      {/* Text 'alquid' */}
-      <text x="42" y="38" fontFamily="sans-serif" fontSize="32" fontWeight="bold" fill="#64748b" letterSpacing="-1">
-        alquid
-      </text>
+    {/* Gray "alquid" text */}
+    <text x="280" y="240" fontFamily="Arial, sans-serif" fontSize="180" fontWeight="bold" fill="#888888">alquid</text>
 
-      {/* Bar 'OpRisk' */}
-      <rect x="42" y="46" width="95" height="14" fill="#8B4513" rx="1" />
-      <text x="89.5" y="56" fontFamily="sans-serif" fontSize="9" fontWeight="bold" fill="white" textAnchor="middle" letterSpacing="1.5">
-        OPRISK
-      </text>
-    </g>
+    {/* Brown OpRisk bar */}
+    <rect x="305" y="280" width="620" height="55" fill="#8B4513" />
+    <text x="615" y="325" fontFamily="Arial, sans-serif" fontSize="36" fontWeight="bold" fill="white" textAnchor="middle">OpRisk</text>
   </svg>
 );
 
