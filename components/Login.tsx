@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
-import { ArrowRight, Lock } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowRight, Lock, AlertCircle } from 'lucide-react';
 import { User, UserRole } from '../types';
+import { googleAuth, GoogleUser } from '../services/googleAuth';
 
 interface LoginProps {
     onLogin: (user: User) => void;
@@ -23,41 +24,46 @@ const AlquidLogo = () => (
 );
 
 const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
-    const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const googleButtonRef = useRef<HTMLDivElement>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
+    useEffect(() => {
+        // Initialize Google Sign-In
+        googleAuth.initialize(
+            (googleUser: GoogleUser) => handleGoogleSuccess(googleUser),
+            (errorMsg: string) => setError(errorMsg)
+        );
+
+        // Render Google button
+        if (googleButtonRef.current) {
+            googleAuth.renderButton(googleButtonRef.current, 'filled_blue', 'large');
+        }
+    }, []);
+
+    const handleGoogleSuccess = (googleUser: GoogleUser) => {
         setLoading(true);
+        setError('');
 
         // Simulate network delay
         setTimeout(() => {
-            if (email.toLowerCase().endsWith('@nfq.es')) {
-                // Check if user exists
-                const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+            // Check if user exists in the system
+            const existingUser = users.find(u => u.email.toLowerCase() === googleUser.email.toLowerCase());
 
-                if (existingUser) {
-                    // Determine department if missing (legacy data fix)
-                    const userWithDept = {
-                        ...existingUser,
-                        department: existingUser.department || 'Unassigned',
-                        lastLogin: new Date().toISOString() // Update last login
-                    };
-
-                    // Update user in store (last Login)
-                    setUsers(users.map(u => u.id === existingUser.id ? userWithDept : u));
-                    onLogin(userWithDept);
-                } else {
-                    setError('User not recognized. Please contact Administrator.');
-                    setLoading(false);
-                }
+            if (existingUser) {
+                // User exists, update last login
+                const userWithLogin = {
+                    ...existingUser,
+                    lastLogin: new Date().toISOString()
+                };
+                setUsers(users.map(u => u.id === existingUser.id ? userWithLogin : u));
+                onLogin(userWithLogin);
             } else {
-                setError('Access restricted to NFQ employees (@nfq.es)');
+                // User not registered in system
+                setError('User not recognized. Please contact Administrator to create your account.');
                 setLoading(false);
             }
-        }, 800);
+        }, 500);
     };
 
     return (
@@ -74,17 +80,27 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
                     <p className="text-slate-400 text-sm mt-2">Next Gen Risk Management</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-6">
+                    {/* Google Sign-In Button */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1.5">Email Address</label>
-                        <input
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="name@nfq.es"
-                            className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-transparent transition-all"
-                        />
+                        <label className="block text-sm font-medium text-slate-300 mb-3 text-center">
+                            Sign in with your NFQ Google Account
+                        </label>
+                        <div
+                            ref={googleButtonRef}
+                            className="flex justify-center"
+                        ></div>
+                    </div>
+
+                    {/* Info Box */}
+                    <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm flex items-start">
+                        <AlertCircle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+                        <div>
+                            <p className="font-semibold">NFQ Employees Only</p>
+                            <p className="text-xs mt-1 text-blue-300/80">
+                                You must use your @nfq.es Google account. If you don't have access, contact your administrator.
+                            </p>
+                        </div>
                     </div>
 
                     {error && (
@@ -94,18 +110,13 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
                         </div>
                     )}
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-brand-brown hover:bg-orange-800 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-black/20 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                        {loading ? 'Authenticating...' : (
-                            <>
-                                Sign In <ArrowRight className="w-4 h-4 ml-2" />
-                            </>
-                        )}
-                    </button>
-                </form>
+                    {loading && (
+                        <div className="text-center text-slate-400 text-sm">
+                            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-brand-brown"></div>
+                            <p className="mt-2">Authenticating...</p>
+                        </div>
+                    )}
+                </div>
 
                 <div className="mt-8 text-center text-xs text-slate-500">
                     <p>&copy; 2023 NFQ Advisory Services. All rights reserved.</p>
