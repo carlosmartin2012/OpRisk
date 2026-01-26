@@ -71,15 +71,14 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
                     client_id: "305790686148-es7bm0pg9ku4voheub6g7i2i2i88psn7.apps.googleusercontent.com",
                     callback: handleCredentialResponse,
                     auto_select: false,
-                    use_fedcm_for_prompt: true
                 });
+
                 window.google.accounts.id.renderButton(googleButtonRef.current, {
                     theme: "outline",
                     size: "large",
                     width: 320,
-                    text: "continue_with",
-                    shape: "pill",
-                    logo_alignment: "left"
+                    text: "signin_with",
+                    shape: "pill"
                 });
                 clearInterval(interval);
             }
@@ -92,7 +91,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
             {/* Header Branding */}
             <div className="flex flex-col items-center mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
                 <div className="flex items-center justify-center gap-4 mb-2">
-                    <img src="/nfq-n.png" alt="NFQ Logo" className="h-16 w-auto" />
+                    <div className="p-1 bg-[#0a0a0a] rounded-lg">
+                        <img src="/nfq-n.png" alt="NFQ Logo" className="h-16 w-auto object-contain" />
+                    </div>
                     <h1 className="text-4xl font-bold tracking-tight text-white">OpRisk</h1>
                 </div>
                 <p className="text-slate-400 text-sm font-medium tracking-wide">
