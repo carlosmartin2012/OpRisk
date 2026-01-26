@@ -35,7 +35,7 @@ const RCSA: React.FC<RCSAProps> = ({
     // Modal States
     const [createModalType, setCreateModalType] = useState<'process' | 'risk' | 'control' | 'dept' | null>(null);
     const [isImporting, setIsImporting] = useState(false);
-    const [importType, setImportType] = useState<'dept' | 'process' | 'risk' | 'control'>('dept');
+    const [importType, setImportType] = useState<'dept' | 'process' | 'risk' | 'control' | 'RCSA'>('RCSA');
 
     // Deletion Logic
     const handleDelete = (type: 'dept' | 'process' | 'risk' | 'control', id: string) => {
@@ -418,34 +418,45 @@ const RCSA: React.FC<RCSAProps> = ({
 
     return (
         <div className="h-[calc(100vh-140px)] flex flex-col relative">
-            <div className="mb-6 flex justify-between items-end">
-                <div>
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t.rcsa}</h2>
-                    <div className="flex items-center gap-4 mt-1">
-                        <p className="text-slate-500 dark:text-slate-400">Department & Process Risk Assessment</p>
-                        <a
-                            href="/Template_RCSA.csv"
-                            download="Template_RCSA_OpRisk.csv"
-                            className="flex items-center px-3 py-1.5 bg-brand-brown/10 text-brand-brown dark:text-orange-400 border border-brand-brown/20 hover:bg-brand-brown/20 rounded-lg text-xs font-semibold transition-colors"
+            <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-6">
+                    <div>
+                        <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t.rcsa}</h2>
+                        <p className="text-slate-500 dark:text-slate-400 mt-1">Department & Process Risk Assessment</p>
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-white/10 flex h-10 self-end">
+                        <button
+                            onClick={() => setViewMode('TABLE')}
+                            className={`px-3 py-1.5 rounded-md flex items-center text-xs font-semibold transition-colors ${viewMode === 'TABLE' ? 'bg-brand-brown text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'}`}
                         >
-                            <Download className="w-3 h-3 mr-2" />
-                            Download Template CSV
-                        </a>
+                            <TableIcon className="w-3.5 h-3.5 mr-2" /> {t.viewTable}
+                        </button>
+                        <button
+                            onClick={() => setViewMode('MAP')}
+                            className={`px-3 py-1.5 rounded-md flex items-center text-xs font-semibold transition-colors ${viewMode === 'MAP' ? 'bg-brand-brown text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                        >
+                            <Network className="w-3.5 h-3.5 mr-2" /> {t.viewMap}
+                        </button>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-white/10 flex">
+
+                <div className="flex items-center space-x-3 self-end">
                     <button
-                        onClick={() => setViewMode('TABLE')}
-                        className={`px-3 py-1.5 rounded-md flex items-center text-sm transition-colors ${viewMode === 'TABLE' ? 'bg-brand-brown text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                        onClick={() => { setImportType('RCSA'); setIsImporting(true); }}
+                        className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
                     >
-                        <TableIcon className="w-4 h-4 mr-2" /> {t.viewTable}
+                        <Upload className="w-4 h-4 mr-2" />
+                        Import CSV
                     </button>
-                    <button
-                        onClick={() => setViewMode('MAP')}
-                        className={`px-3 py-1.5 rounded-md flex items-center text-sm transition-colors ${viewMode === 'MAP' ? 'bg-brand-brown text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                    <a
+                        href="/Template_RCSA.csv"
+                        download="Template_RCSA_OpRisk.csv"
+                        className="flex items-center px-4 py-2 bg-brand-brown/10 text-brand-brown dark:text-orange-400 border border-brand-brown/20 hover:bg-brand-brown/20 rounded-lg text-sm font-medium transition-colors"
                     >
-                        <Network className="w-4 h-4 mr-2" /> {t.viewMap}
-                    </button>
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Template
+                    </a>
                 </div>
             </div>
 
