@@ -74,10 +74,10 @@ const Layout: React.FC<LayoutProps> = ({
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-[#0f172a] text-slate-900 dark:text-white transition-colors duration-300">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-[#050505] text-slate-900 dark:text-white transition-colors duration-300">
 
       {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#0f172a] relative z-20">
+      <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#0d0d0d] relative z-20 no-print">
         <div className="p-6 flex flex-col items-center justify-center">
           <AlquidLogo />
         </div>
@@ -156,27 +156,21 @@ const Layout: React.FC<LayoutProps> = ({
             </div>
 
             <div className="prose dark:prose-invert max-w-none space-y-4 pb-10">
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">Welcome to ALQUID OpRisk</h3>
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  The advanced platform for Operational Risk Management, designed for NFQ and global financial institutions.
-                  This manual provides a detailed guide on how to utilize each module effectively.
+              <div className="p-4 bg-orange-50 dark:bg-brand-brown/10 rounded-xl border border-orange-100 dark:border-brand-brown/20 group">
+                <h3 className="text-lg font-semibold text-brand-brown dark:text-orange-400 mb-2">NFQ OpRisk Platform</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Welcome to the multi-user operational risk management ecosystem. This version includes full Supabase cloud integration and real-time data streaming.
                 </p>
               </div>
 
               <div className="space-y-6 mt-6">
                 <section>
                   <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
-                    <LayoutDashboard className="w-5 h-5 mr-2 text-brand-brown" /> Dashboard
+                    <Globe className="w-5 h-5 mr-2 text-brand-brown" /> Real-time Synchronization
                   </h4>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    The <strong>Dashboard</strong> provides a high-level overview of the organization's risk profile.
+                    The platform now operates in the cloud. All actions (creating, editing, deleting) are reflected <strong>instantly</strong> for all connected users without refreshing.
                   </p>
-                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
-                    <li><strong>Key Metrics:</strong> Monitor Total Loss, Event Count, and Capital Requirements at a glance.</li>
-                    <li><strong>Trends:</strong> Analyze loss evolution over time to identify seasonal spikes or improvements.</li>
-                    <li><strong>Heatmaps:</strong> Visualize risk concentration by Business Line and Event Type.</li>
-                  </ul>
                 </section>
 
                 <section className="border-t border-slate-200 dark:border-white/10 pt-4">
@@ -257,10 +251,13 @@ const Layout: React.FC<LayoutProps> = ({
                 </section>
               </div>
 
-              <div className="pt-6 border-t border-slate-200 dark:border-white/10">
-                <button className="w-full flex items-center justify-center px-4 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:opacity-90 transition-opacity shadow-lg">
+              <div className="pt-6 border-t border-slate-200 dark:border-white/10 no-print">
+                <button
+                  onClick={() => window.print()}
+                  className="w-full flex items-center justify-center px-4 py-3 bg-brand-brown hover:bg-orange-800 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-brown/20"
+                >
                   <Download className="w-5 h-5 mr-2" />
-                  Download Full PDF Documentation
+                  Save Manual as PDF
                 </button>
               </div>
             </div>
@@ -269,9 +266,9 @@ const Layout: React.FC<LayoutProps> = ({
       )}
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col relative overflow-hidden">
+      <main className="flex-1 flex flex-col relative overflow-hidden print:overflow-visible">
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md sticky top-0 z-10">
+        <header className="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-[#050505]/80 backdrop-blur-md sticky top-0 z-10 no-print">
           <div className="md:hidden">
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-500 hover:text-brand-brown">
               <Menu className="w-6 h-6" />

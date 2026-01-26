@@ -26,7 +26,7 @@ interface DashboardProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 const StatCard = ({ title, value, trend, icon: Icon, color }: any) => (
-  <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none">
+  <div className="bg-white dark:bg-slate-900/50 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none">
     <div className="flex justify-between items-start">
       <div>
         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</p>
@@ -220,7 +220,7 @@ const Dashboard: React.FC<DashboardProps> = ({ events, controls }) => {
                 <XAxis dataKey="name" stroke="#94a3b8" />
                 <YAxis stroke="#94a3b8" />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc' }}
+                  contentStyle={{ backgroundColor: '#0d0d0d', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc' }}
                   itemStyle={{ color: '#38bdf8' }}
                 />
                 <Area type="monotone" dataKey="loss" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorLoss)" />
@@ -281,7 +281,7 @@ const Dashboard: React.FC<DashboardProps> = ({ events, controls }) => {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', zIndex: 1000 }}
+                    contentStyle={{ backgroundColor: '#0d0d0d', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', zIndex: 1000 }}
                   />
                   <Legend />
                 </PieChart>

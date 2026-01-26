@@ -12,12 +12,12 @@ export default {
             },
             colors: {
                 brand: {
-                    dark: '#0f172a',
+                    dark: '#050505',
                     accent: '#38bdf8', // Cyan
                     brown: '#8B4513', // Alquid Brown
                     gray: '#64748b', // Alquid Grey
                     secondary: '#a855f7', // Purple
-                    surface: '#1e293b',
+                    surface: '#0d0d0d',
                 }
             }
         }

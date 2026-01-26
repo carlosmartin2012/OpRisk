@@ -12,7 +12,7 @@ const ErrorFallback = () => (
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    background: '#0f172a',
+    background: '#050505',
     color: 'white',
     fontFamily: 'sans-serif'
   }}>

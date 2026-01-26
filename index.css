@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Scrollbar for Glassmorphism feel - moved from HTML */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -11,11 +11,43 @@
   background: transparent; 
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.5); 
+  background: rgba(100, 116, 139, 0.3); 
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.8); 
+  background: rgba(148, 163, 184, 0.5); 
+}
+
+/* Print Styles for PDF Generation */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  .print-only {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Ensure the drawer content takes full space when printing */
+  .fixed {
+    position: relative !important;
+    display: block !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  .backdrop-blur-sm {
+    display: none !important;
+  }
 }
 
 /* Animations */
