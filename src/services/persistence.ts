@@ -13,6 +13,37 @@ export interface AppState {
 
 const STORAGE_KEY = 'oprisk_app_state';
 
+// Utility to fix common UTF-8 encoding issues (mojibake)
+const sanitizeString = (str: string) => {
+    if (typeof str !== 'string') return str;
+    try {
+        // If it contains patterns like Ã© (é) or Ã¡ (á), try to fix it
+        if (/[\u00C0-\u00FF][\u0080-\u00BF]/.test(str)) {
+            return decodeURIComponent(escape(str));
+        }
+    } catch (e) {
+        // If it fails, return original
+    }
+    return str;
+};
+
+const sanitizeObject = (obj: any): any => {
+    if (!obj || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(sanitizeObject);
+
+    const newObj: any = {};
+    for (const key in obj) {
+        if (typeof obj[key] === 'string') {
+            newObj[key] = sanitizeString(obj[key]);
+        } else if (typeof obj[key] === 'object') {
+            newObj[key] = sanitizeObject(obj[key]);
+        } else {
+            newObj[key] = obj[key];
+        }
+    }
+    return newObj;
+};
+
 // Helper to clean objects before sending to Supabase
 const cleanForDb = (obj: any) => {
     const cleaned = { ...obj };
@@ -54,7 +85,7 @@ export const PersistenceService = {
 
             if (!users && !events) return null;
 
-            return {
+            const state = {
                 users: users || [],
                 events: (events || []).map(e => ({
                     ...e,
@@ -65,6 +96,8 @@ export const PersistenceService = {
                 risks: risks || [],
                 controls: controls || []
             } as any;
+
+            return sanitizeObject(state);
         } catch (e) {
             console.error('Supabase load error:', e);
             return null;
@@ -72,22 +105,24 @@ export const PersistenceService = {
     },
 
     save: async (state: AppState) => {
+        // Fix any potential encoding issues before saving
+        const sanitizedState = sanitizeObject(state);
+
         // Fallback local
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizedState));
 
         try {
             // Upsert only if there's data
-            // We use Promise.allSettled to ensure one failure doesn't stop others
             await Promise.allSettled([
-                state.users.length > 0 ? supabase.from('users_data').upsert(state.users) : Promise.resolve(),
-                state.events.length > 0 ? supabase.from('events').upsert(state.events.map(e => ({
+                sanitizedState.users.length > 0 ? supabase.from('users_data').upsert(sanitizedState.users) : Promise.resolve(),
+                sanitizedState.events.length > 0 ? supabase.from('events').upsert(sanitizedState.events.map((e: any) => ({
                     ...e,
                     auditTrail: JSON.stringify(e.auditTrail || [])
                 }))) : Promise.resolve(),
-                state.departments.length > 0 ? supabase.from('departments').upsert(state.departments) : Promise.resolve(),
-                state.processes.length > 0 ? supabase.from('processes').upsert(state.processes) : Promise.resolve(),
-                state.risks.length > 0 ? supabase.from('risks').upsert(state.risks) : Promise.resolve(),
-                state.controls.length > 0 ? supabase.from('controls').upsert(state.controls) : Promise.resolve()
+                sanitizedState.departments.length > 0 ? supabase.from('departments').upsert(sanitizedState.departments) : Promise.resolve(),
+                sanitizedState.processes.length > 0 ? supabase.from('processes').upsert(sanitizedState.processes) : Promise.resolve(),
+                sanitizedState.risks.length > 0 ? supabase.from('risks').upsert(sanitizedState.risks) : Promise.resolve(),
+                sanitizedState.controls.length > 0 ? supabase.from('controls').upsert(sanitizedState.controls) : Promise.resolve()
             ]);
         } catch (e) {
             console.error('Supabase save error:', e);

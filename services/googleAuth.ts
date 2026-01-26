@@ -146,14 +146,17 @@ export class GoogleAuthService {
         try {
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(
-                atob(base64)
-                    .split('')
-                    .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join('')
-            );
+
+            // Safer way to decode UTF-8 characters from Base64
+            // atob() reads as individual bytes, we map them to percent-encoded hex
+            // then decodeURIComponent interprets that as UTF-8.
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+
             return JSON.parse(jsonPayload);
         } catch (error) {
+            console.error('JWT Parse Error:', error);
             throw new Error('Invalid token');
         }
     }
