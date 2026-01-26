@@ -26,20 +26,53 @@ const AlquidLogo = () => (
 const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [googleLoaded, setGoogleLoaded] = useState(false);
     const googleButtonRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        let mounted = true;
+        let renderAttempts = 0;
+        const maxAttempts = 50; // 5 seconds max
+
         // Initialize Google Sign-In
         googleAuth.initialize(
-            (googleUser: GoogleUser) => handleGoogleSuccess(googleUser),
-            (errorMsg: string) => setError(errorMsg)
+            (googleUser: GoogleUser) => {
+                if (mounted) handleGoogleSuccess(googleUser);
+            },
+            (errorMsg: string) => {
+                if (mounted) setError(errorMsg);
+            }
         );
 
-        // Render Google button
-        if (googleButtonRef.current) {
-            googleAuth.renderButton(googleButtonRef.current, 'filled_blue', 'large');
-        }
-    }, []);
+        // Try to render Google button with retry logic
+        const tryRenderButton = setInterval(() => {
+            renderAttempts++;
+
+            if (window.google?.accounts?.id && googleButtonRef.current && !googleLoaded) {
+                clearInterval(tryRenderButton);
+                try {
+                    googleAuth.renderButton(googleButtonRef.current, 'filled_blue', 'large');
+                    if (mounted) setGoogleLoaded(true);
+                    console.log('Google button rendered successfully');
+                } catch (err) {
+                    console.error('Error rendering Google button:', err);
+                    if (mounted) setError('Failed to load Google Sign-In. Please refresh the page.');
+                }
+            }
+
+            if (renderAttempts >= maxAttempts) {
+                clearInterval(tryRenderButton);
+                if (!googleLoaded && mounted) {
+                    setError('Google Sign-In failed to load. Please check your internet connection and refresh the page.');
+                }
+            }
+        }, 100);
+
+        return () => {
+            mounted = false;
+            clearInterval(tryRenderButton);
+        };
+    }, [googleLoaded]);
 
     const handleGoogleSuccess = (googleUser: GoogleUser) => {
         setLoading(true);
@@ -88,8 +121,15 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
                         </label>
                         <div
                             ref={googleButtonRef}
-                            className="flex justify-center"
-                        ></div>
+                            className="flex justify-center min-h-[44px] items-center"
+                        >
+                            {!googleLoaded && !error && (
+                                <div className="flex items-center text-slate-400 text-sm">
+                                    <div className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-brand-brown mr-2"></div>
+                                    Loading Google Sign-In...
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Info Box */}
