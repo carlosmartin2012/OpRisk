@@ -12,6 +12,7 @@ interface ControlTestingProps {
     departments: Department[];
     processes: Process[];
     risks: RiskItem[];
+    logAction: (module: string, type: any, action: string) => void;
 }
 
 const ControlTesting: React.FC<ControlTestingProps> = ({
@@ -21,7 +22,8 @@ const ControlTesting: React.FC<ControlTestingProps> = ({
     setControls,
     departments,
     processes,
-    risks
+    risks,
+    logAction
 }) => {
     const t = TRANSLATIONS[language];
 
@@ -58,6 +60,7 @@ const ControlTesting: React.FC<ControlTestingProps> = ({
                 evidence: files.map(f => f.name).join(', '),
                 lastTested: new Date().toISOString().split('T')[0]
             } : c));
+            logAction('Control Testing', 'Execution', `Uploaded evidence for control ${selectedControlForImport}: ${files.map(f => f.name).join(', ')}`);
         }
         setShowImportModal(false);
         setSelectedControlForImport(null);
@@ -66,11 +69,13 @@ const ControlTesting: React.FC<ControlTestingProps> = ({
     const handleValidate = (id: string) => {
         if (!canValidate) return;
         setControls(controls.map(c => c.id === id ? { ...c, status: 'Validated' } : c));
+        logAction('Control Testing', 'Validation', `Validated control ${id}`);
     };
 
     const handleReject = (id: string) => {
         if (!canValidate) return;
         setControls(controls.map(c => c.id === id ? { ...c, status: 'Non Validated' } : c));
+        logAction('Control Testing', 'Validation', `Rejected validation for control ${id}`);
     };
 
     // Data Processing

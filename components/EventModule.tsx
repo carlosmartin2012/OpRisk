@@ -14,6 +14,7 @@ interface EventModuleProps {
     setEvents: (events: OpEvent[]) => void;
     departments: Department[];
     processes: Process[];
+    logAction: (module: string, type: any, action: string) => void;
 }
 
 // Reusable Form Component - Extracted to prevent focus loss
@@ -196,7 +197,7 @@ const EventForm = ({
     );
 };
 
-const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEvents, departments, processes }) => {
+const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEvents, departments, processes, logAction }) => {
     const t = TRANSLATIONS[language];
     const [activeActionId, setActiveActionId] = useState<string | null>(null);
 
@@ -305,6 +306,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
                 }
             });
             setEvents(updatedEvents);
+            logAction('Data', 'Import', `Imported ${items.length} events from ${fileName}`);
             alert(`Successfully imported ${items.length} events.`);
         }
     };
@@ -324,6 +326,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
             }]
         };
         setEvents([eventToSave, ...events]);
+        logAction('Data', 'Creation', `Manually created event ${generatedId}`);
         setIsCreating(false);
         setNewEvent(emptyEvent); // Reset
     };
@@ -349,6 +352,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
             }
             return e;
         }));
+        logAction('Data', 'Validation', `Changed status of event ${id} to ${newStatus}`);
         setActiveActionId(null);
     };
 
@@ -380,12 +384,14 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
             }
             return evt;
         }));
+        logAction('Data', 'Edit', `Edited details for event ${editingEvent.id}`);
         setEditingEvent(null);
     };
 
     const handleDeleteEvent = (id: string) => {
         if (!window.confirm("Are you sure you want to delete this event?")) return;
         setEvents(events.filter(e => e.id !== id));
+        logAction('Data', 'Delete', `Deleted event ${id}`);
         PersistenceService.delete('events', id);
         setActiveActionId(null);
     };

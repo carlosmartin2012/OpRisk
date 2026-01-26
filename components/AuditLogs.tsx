@@ -4,19 +4,11 @@ import { AuditLog, Language, TRANSLATIONS } from '../types';
 
 interface AuditLogsProps {
     language: Language;
+    logs: AuditLog[];
 }
 
-const AuditLogs: React.FC<AuditLogsProps> = ({ language }) => {
+const AuditLogs: React.FC<AuditLogsProps> = ({ language, logs }) => {
     const t = TRANSLATIONS[language];
-
-    // Mock Global Audit Logs (In a real app, this comes from backend or global state)
-    const logs: AuditLog[] = [
-        { id: 'LOG-001', date: '2023-10-25 10:45:00', user: 'carlos.martin@nfq.es', action: 'Imported CSV (5 events)', module: 'Data', type: 'Import' },
-        { id: 'LOG-002', date: '2023-10-25 11:15:20', user: 'risk.manager@nfq.es', action: 'Modified event EVT-2023-001 amount', module: 'Data', type: 'Edit' },
-        { id: 'LOG-003', date: '2023-10-25 14:30:10', user: 'auditor@nfq.es', action: 'Validated Control CTRL-02', module: 'Control Testing', type: 'Validation' },
-        { id: 'LOG-004', date: '2023-10-26 09:00:00', user: 'system', action: 'Executed Capital Calculation', module: 'Capital Engine', type: 'Execution' },
-        { id: 'LOG-005', date: '2023-10-26 09:05:00', user: 'admin@nfq.es', action: 'Deleted Event EVT-2023-099', module: 'Data', type: 'Delete' },
-    ];
 
     const exportToExcel = () => {
         const headers = ["Date", "User", "Module", "Type", "Action Details"];

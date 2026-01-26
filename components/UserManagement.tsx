@@ -7,9 +7,10 @@ interface UserManagementProps {
     users: User[];
     setUsers: (users: User[]) => void;
     currentUser: User | null;
+    logAction: (module: string, type: any, action: string) => void;
 }
 
-const UserManagement: React.FC<UserManagementProps> = ({ users, setUsers, currentUser }) => {
+const UserManagement: React.FC<UserManagementProps> = ({ users, setUsers, currentUser, logAction }) => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newUserForm, setNewUserForm] = useState({
         name: '',
@@ -33,6 +34,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, setUsers, curren
         }
 
         setUsers(users.map(u => u.id === id ? { ...u, role: newRole } : u));
+        logAction('User Management', 'Edit', `Changed role of user ${id} to ${newRole}`);
     };
 
     const handleCreateUser = (e: React.FormEvent) => {
@@ -60,6 +62,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, setUsers, curren
         };
 
         setUsers([...users, newUser]);
+        logAction('User Management', 'Creation', `Created new user ${newUser.email}`);
         setShowCreateModal(false);
         setNewUserForm({ name: '', email: '', department: 'Risk Dept', role: 'First Line' });
     };
@@ -141,6 +144,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ users, setUsers, curren
                                             <button
                                                 onClick={() => {
                                                     if (window.confirm('Are you sure you want to delete this user?')) {
+                                                        logAction('User Management', 'Delete', `Deleted user ${u.email}`);
                                                         setUsers(users.filter(user => user.id !== u.id));
                                                     }
                                                 }}

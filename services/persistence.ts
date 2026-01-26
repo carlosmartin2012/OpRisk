@@ -1,5 +1,5 @@
 
-import { User, OpEvent, Department, Process, RiskItem, Control, FinancialData } from '../types';
+import { User, OpEvent, Department, Process, RiskItem, Control, FinancialData, AuditLog } from '../types';
 
 const STORAGE_KEY = 'alquid_oprisk_db_v1';
 const BROADCAST_CHANNEL_NAME = 'alquid_oprisk_sync';
@@ -11,6 +11,7 @@ export interface AppState {
     processes: Process[];
     risks: RiskItem[];
     controls: Control[];
+    auditLogs: AuditLog[];
 }
 
 // Simple event emitter for internal app updates

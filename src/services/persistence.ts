@@ -1,5 +1,5 @@
 
-import { User, OpEvent, Department, Process, RiskItem, Control } from '../../types';
+import { User, OpEvent, Department, Process, RiskItem, Control, AuditLog } from '../../types';
 import { supabase } from './supabaseClient';
 
 export interface AppState {
@@ -9,6 +9,7 @@ export interface AppState {
     processes: Process[];
     risks: RiskItem[];
     controls: Control[];
+    auditLogs: AuditLog[];
 }
 
 const STORAGE_KEY = 'oprisk_app_state';
@@ -94,7 +95,8 @@ export const PersistenceService = {
                 departments: departments || [],
                 processes: processes || [],
                 risks: risks || [],
-                controls: controls || []
+                controls: controls || [],
+                auditLogs: (await supabase.from('audit_logs').select('*')).data || []
             } as any;
 
             return sanitizeObject(state);
@@ -122,7 +124,8 @@ export const PersistenceService = {
                 sanitizedState.departments.length > 0 ? supabase.from('departments').upsert(sanitizedState.departments) : Promise.resolve(),
                 sanitizedState.processes.length > 0 ? supabase.from('processes').upsert(sanitizedState.processes) : Promise.resolve(),
                 sanitizedState.risks.length > 0 ? supabase.from('risks').upsert(sanitizedState.risks) : Promise.resolve(),
-                sanitizedState.controls.length > 0 ? supabase.from('controls').upsert(sanitizedState.controls) : Promise.resolve()
+                sanitizedState.controls.length > 0 ? supabase.from('controls').upsert(sanitizedState.controls) : Promise.resolve(),
+                sanitizedState.auditLogs.length > 0 ? supabase.from('audit_logs').upsert(sanitizedState.auditLogs) : Promise.resolve()
             ]);
         } catch (e) {
             console.error('Supabase save error:', e);

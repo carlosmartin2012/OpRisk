@@ -9,7 +9,7 @@ import ControlTesting from './components/ControlTesting';
 import CapitalEngine from './components/CapitalEngine';
 import AuditLogs from './components/AuditLogs';
 import UserManagement from './components/UserManagement';
-import { ViewState, User, Language, Department, Process, RiskItem, Control, OpEvent } from './types';
+import { ViewState, User, Language, Department, Process, RiskItem, Control, OpEvent, AuditLog } from './types';
 import { PersistenceService, AppState } from './src/services/persistence';
 
 // --- DEFAULT DATA ---
@@ -77,6 +77,19 @@ function App() {
     const [risks, setRisks] = useState<RiskItem[]>(DEFAULT_RISKS);
     const [controls, setControls] = useState<Control[]>(DEFAULT_CONTROLS);
     const [events, setEvents] = useState<OpEvent[]>(DEFAULT_EVENTS);
+    const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+
+    const logAction = (module: string, type: AuditLog['type'], action: string) => {
+        const newLog: AuditLog = {
+            id: `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+            user: user?.email || 'system',
+            module,
+            type,
+            action
+        };
+        setAuditLogs(prev => [newLog, ...prev]);
+    };
 
     // Sync with Supabase
     useEffect(() => {
@@ -90,6 +103,7 @@ function App() {
                 setRisks(data.risks);
                 setControls(data.controls);
                 setEvents(data.events);
+                setAuditLogs(data.auditLogs || []);
             }
         };
 
@@ -114,9 +128,11 @@ function App() {
     const handleLogin = (user: User) => {
         setUser(user);
         setCurrentView(ViewState.DASHBOARD);
+        logAction('System', 'Creation', `User ${user.email} logged in`);
     };
 
     const handleLogout = () => {
+        logAction('System', 'Delete', `User ${user?.email} logged out`);
         setUser(null);
         setCurrentView(ViewState.LOGIN);
     };
@@ -134,13 +150,14 @@ function App() {
             departments,
             processes,
             risks,
-            controls
+            controls,
+            auditLogs
         };
 
         // Mark local save time and push to Supabase
         lastLocalSave.current = Date.now();
         PersistenceService.save(currentState);
-    }, [users, events, departments, processes, risks, controls]);
+    }, [users, events, departments, processes, risks, controls, auditLogs]);
 
     if (!user) {
         return <Login onLogin={handleLogin} users={users} setUsers={setUsers} />;
@@ -167,6 +184,7 @@ function App() {
                     setEvents={setEvents}
                     departments={departments}
                     processes={processes}
+                    logAction={logAction}
                 />
             )}
 
@@ -177,6 +195,7 @@ function App() {
                     processes={processes} setProcesses={setProcesses}
                     risks={risks} setRisks={setRisks}
                     controls={controls} setControls={setControls}
+                    logAction={logAction}
                 />
             )}
 
@@ -189,18 +208,20 @@ function App() {
                     departments={departments}
                     processes={processes}
                     risks={risks}
+                    logAction={logAction}
                 />
             )}
 
-            {currentView === ViewState.CAPITAL && <CapitalEngine user={user} />}
+            {currentView === ViewState.CAPITAL && <CapitalEngine user={user} logAction={logAction} />}
 
-            {currentView === ViewState.AUDIT_LOGS && <AuditLogs language={language} />}
+            {currentView === ViewState.AUDIT_LOGS && <AuditLogs language={language} logs={auditLogs} />}
 
             {currentView === ViewState.USERS && (
                 <UserManagement
                     users={users}
                     setUsers={setUsers}
                     currentUser={user}
+                    logAction={logAction}
                 />
             )}
         </Layout>

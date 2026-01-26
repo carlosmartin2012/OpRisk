@@ -17,6 +17,7 @@ interface RCSAProps {
     setRisks: React.Dispatch<React.SetStateAction<RiskItem[]>>;
     controls: Control[];
     setControls: React.Dispatch<React.SetStateAction<Control[]>>;
+    logAction: (module: string, type: any, action: string) => void;
 }
 
 const RCSA: React.FC<RCSAProps> = ({
@@ -24,7 +25,8 @@ const RCSA: React.FC<RCSAProps> = ({
     departments, setDepartments,
     processes, setProcesses,
     risks, setRisks,
-    controls, setControls
+    controls, setControls,
+    logAction
 }) => {
     const t = TRANSLATIONS[language];
     const [viewMode, setViewMode] = useState<'TABLE' | 'MAP'>('TABLE');
@@ -58,6 +60,7 @@ const RCSA: React.FC<RCSAProps> = ({
             setRisks(risks.map(r => ({ ...r, controlIds: r.controlIds.filter(cid => cid !== id) })));
             PersistenceService.delete('controls', id);
         }
+        logAction('RCSA', 'Delete', `Deleted ${type} with ID ${id}`);
     };
 
     // Creation Logic
@@ -112,6 +115,7 @@ const RCSA: React.FC<RCSAProps> = ({
                 return r;
             }));
         }
+        logAction('RCSA', 'Creation', `Created new ${createModalType}: ${data.name}`);
         setCreateModalType(null);
     };
 
@@ -183,6 +187,7 @@ const RCSA: React.FC<RCSAProps> = ({
             });
         }
 
+        logAction('RCSA', 'Import', `Imported RCSA data from ${fileName}`);
         alert("Import completed successfully.");
         setIsImporting(false);
     };

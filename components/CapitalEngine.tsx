@@ -5,10 +5,11 @@ import { FinancialData, User } from '../types';
 
 interface CapitalEngineProps {
     user?: User | null;
+    logAction?: (module: string, type: any, action: string) => void;
 }
 
 
-const CapitalEngine: React.FC<CapitalEngineProps> = ({ user }) => {
+const CapitalEngine: React.FC<CapitalEngineProps> = ({ user, logAction }) => {
     const canEdit = user?.role === 'OpRisk' || user?.role === 'Administrator';
 
     const [financials, setFinancials] = useState<FinancialData>({
@@ -189,11 +190,17 @@ const CapitalEngine: React.FC<CapitalEngineProps> = ({ user }) => {
 
                         <div className="flex space-x-4">
                             {canEdit && (
-                                <button className="flex items-center px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors border border-white/10">
+                                <button
+                                    onClick={() => logAction?.('Capital Engine', 'Execution', 'Saved capital simulation')}
+                                    className="flex items-center px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors border border-white/10"
+                                >
                                     <Save className="w-4 h-4 mr-2" /> Save Simulation
                                 </button>
                             )}
-                            <button className="flex items-center px-4 py-2 bg-brand-brown hover:bg-orange-800 text-white rounded-lg text-sm transition-colors shadow-lg shadow-black/20">
+                            <button
+                                onClick={() => logAction?.('Capital Engine', 'Execution', 'Generated capital calculation report')}
+                                className="flex items-center px-4 py-2 bg-brand-brown hover:bg-orange-800 text-white rounded-lg text-sm transition-colors shadow-lg shadow-black/20"
+                            >
                                 Generate Report
                             </button>
                         </div>
