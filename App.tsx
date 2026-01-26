@@ -10,7 +10,7 @@ import CapitalEngine from './components/CapitalEngine';
 import AuditLogs from './components/AuditLogs';
 import UserManagement from './components/UserManagement';
 import { ViewState, User, Language, Department, Process, RiskItem, Control, OpEvent } from './types';
-import { PersistenceService, AppState } from './services/persistence';
+import { PersistenceService, AppState } from './src/services/persistence';
 
 // --- DEFAULT DATA ---
 const DEFAULT_USERS: User[] = [

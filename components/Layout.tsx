@@ -32,14 +32,9 @@ interface LayoutProps {
 
 // Custom Logo Component matching the new brand design
 const AlquidLogo = () => (
-  <svg width="160" height="60" viewBox="0 0 960 360" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
-    {/* Gray "alquid" text */}
-    <text x="70" y="240" fontFamily="Arial, sans-serif" fontSize="180" fontWeight="bold" fill="#888888">alquid</text>
-
-    {/* Brown OpRisk bar */}
-    <rect x="95" y="280" width="620" height="55" fill="#8B4513" />
-    <text x="405" y="325" fontFamily="Arial, sans-serif" fontSize="36" fontWeight="bold" fill="white" textAnchor="middle">OpRisk</text>
-  </svg>
+  <div className="flex items-center justify-center h-12 w-full">
+    <img src="/logo.png" alt="Alquid Logo" className="h-full object-contain" />
+  </div>
 );
 
 const Layout: React.FC<LayoutProps> = ({
