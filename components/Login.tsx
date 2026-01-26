@@ -70,23 +70,26 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
                 window.google.accounts.id.initialize({
                     client_id: "305790686148-es7bm0pg9ku4voheub6g7i2i2i88psn7.apps.googleusercontent.com",
                     callback: handleCredentialResponse,
-                    auto_select: false, // Prevents automatic selection
-                    itp_support: true,   // Disables personalization/one-tap in some contexts
+                    auto_select: false,
+                    use_fedcm_for_prompt: false,
                     context: 'signin',
-                    ux_mode: 'popup' // Explicitly set ux_mode to 'popup'
+                    itp_support: true
                 });
+
+                // Specifically disable automatic personalization
+                window.google.accounts.id.disableAutoSelect();
 
                 window.google.accounts.id.renderButton(googleButtonRef.current, {
                     type: "standard",
                     theme: "outline",
                     size: "large",
                     width: 320,
-                    text: "continue_with", // Shows "Continue with Google"
+                    text: "continue_with",
                     shape: "pill",
                     logo_alignment: "left"
                 });
 
-                // Ensure no floating "One Tap" prompt is shown
+                // Cancel any pending one-tap prompts that might trigger personalization
                 window.google.accounts.id.cancel();
 
                 clearInterval(interval);
@@ -112,7 +115,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
 
             {/* Login Card */}
             <div className="w-full max-w-md bg-[#161616] border border-white/5 p-10 rounded-[32px] shadow-2xl relative">
-                <div className="mb-10">
+                <div className="mb-10 text-center">
                     <h2 className="text-2xl font-bold text-white mb-2">Welcome</h2>
                     <p className="text-slate-400 text-sm">
                         Sign in to access your operational risk dashboard
@@ -121,14 +124,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
 
                 <div className="space-y-8">
                     <div className="flex flex-col items-center">
-                        {/* Custom visual container for Google button to match the image style */}
-                        <div className="w-full relative group">
-                            <div ref={googleButtonRef} className="flex justify-center transition-transform active:scale-[0.98]"></div>
-                            {loading && (
-                                <div className="absolute inset-0 bg-[#161616]/80 backdrop-blur-sm flex items-center justify-center rounded-full">
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                </div>
-                            )}
+                        <div className="w-full flex justify-center min-h-[44px]">
+                            <div ref={googleButtonRef}></div>
                         </div>
                     </div>
 
