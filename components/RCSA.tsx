@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useRef } from 'react';
 import { Department, Process, RiskItem, Control, Language, TRANSLATIONS } from '../types';
-import { Folder, ChevronRight, AlertTriangle, Table as TableIcon, Network, User, ZoomIn, ZoomOut, Move, Plus, Upload, Save, X, Trash2 } from 'lucide-react';
+import { Folder, ChevronRight, AlertTriangle, Table as TableIcon, Network, User, ZoomIn, ZoomOut, Move, Plus, Upload, Save, X, Trash2, Download } from 'lucide-react';
 import RCSAForm from './RCSAForm';
 import ImportDrawer from './ImportDrawer';
 import { PersistenceService } from '../src/services/persistence';
@@ -421,7 +421,16 @@ const RCSA: React.FC<RCSAProps> = ({
             <div className="mb-6 flex justify-between items-end">
                 <div>
                     <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t.rcsa}</h2>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Department & Process Risk Assessment</p>
+                    <div className="flex items-center gap-4 mt-1">
+                        <p className="text-slate-500 dark:text-slate-400">Department & Process Risk Assessment</p>
+                        <a
+                            href="/Template_RCSA.csv"
+                            download="Template_RCSA_OpRisk.csv"
+                            className="flex items-center text-xs font-semibold text-brand-brown hover:underline"
+                        >
+                            <Download className="w-3 h-3 mr-1" /> Template CSV
+                        </a>
+                    </div>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-white/10 flex">
                     <button

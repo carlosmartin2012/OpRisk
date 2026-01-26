@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Upload, MoreVertical, CheckCircle, XCircle, Edit, Save, X } from 'lucide-react';
+import { Plus, Search, Filter, Upload, MoreVertical, CheckCircle, XCircle, Edit, Save, X, Download } from 'lucide-react';
 import { EBA_EVENT_TYPES, EBA_EVENT_TYPES_HIERARCHY, BUSINESS_LINES, OpEvent, Language, TRANSLATIONS, User, Department, Process } from '../types';
 import ImportDrawer from './ImportDrawer';
 import { PersistenceService } from '../src/services/persistence';
@@ -427,6 +427,13 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
                                 <Upload className="w-4 h-4 mr-2" />
                                 {t.uploadCsv}
                             </button>
+                            <a
+                                href="/Template_Events.csv"
+                                download="Template_Events_OpRisk.csv"
+                                className="flex items-center px-3 py-2 text-xs font-semibold text-brand-brown hover:underline"
+                            >
+                                <Download className="w-3 h-3 mr-1" /> Template
+                            </a>
                         </>
                     )}
                 </div>
