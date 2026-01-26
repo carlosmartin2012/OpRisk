@@ -1,5 +1,5 @@
 
-import { OpEvent, Department, Process, RiskItem, Control, EBA_EVENT_TYPES, EBA_EVENT_TYPES_HIERARCHY, BUSINESS_LINES } from '../types';
+import { OpEvent, Department, Process, RiskItem, Control, EBA_EVENT_TYPES, EBA_EVENT_TYPES_HIERARCHY, BUSINESS_LINES } from '../../types';
 
 export interface ValidationError {
     row: number;

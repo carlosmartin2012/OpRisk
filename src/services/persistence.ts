@@ -1,5 +1,5 @@
 
-import { User, OpEvent, Department, Process, RiskItem, Control } from '../types';
+import { User, OpEvent, Department, Process, RiskItem, Control } from '../../types';
 import { supabase } from './supabaseClient';
 
 export interface AppState {
