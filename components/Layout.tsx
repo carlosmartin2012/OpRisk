@@ -32,9 +32,12 @@ interface LayoutProps {
 
 // Custom Logo Component matching the new brand design
 const AlquidLogo = () => (
-  <div className="flex flex-col items-center justify-center p-2 mb-4">
-    <span className="text-xl font-black tracking-tighter text-brand-brown dark:text-orange-500">ALQUID</span>
-    <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400">OPRISK</span>
+  <div className="flex items-center gap-3 px-2 mb-6">
+    <img src="/nfq-n.png" alt="N Logo" className="h-10 w-auto object-contain" />
+    <div className="flex flex-col">
+      <span className="text-xl font-black tracking-tight text-slate-800 dark:text-white leading-none">OpRisk</span>
+      <span className="text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">NFQ Advisory</span>
+    </div>
   </div>
 );
 

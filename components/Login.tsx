@@ -94,7 +94,12 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
 
             <div className="w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl relative z-10">
                 <div className="text-center mb-10">
-                    <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">ALQUID OpRisk — Next Gen Risk Management</p>
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                        <img src="/nfq-n.png" alt="NFQ Logo" className="h-14 w-auto" />
+                        <div className="h-10 w-px bg-white/20"></div>
+                        <h1 className="text-3xl font-black tracking-tighter text-white">OpRisk</h1>
+                    </div>
+                    <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">Next Gen Risk Management</p>
                 </div>
 
                 <div className="space-y-6">
