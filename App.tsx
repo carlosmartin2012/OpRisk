@@ -59,8 +59,7 @@ const DEFAULT_EVENTS: OpEvent[] = [
 ];
 
 function App() {
-    // Attempt load from persistence
-    const savedState = PersistenceService.load();
+    // Initial data is defaults
 
     const [user, setUser] = useState<User | null>(null);
     const [currentView, setCurrentView] = useState<ViewState>(ViewState.DASHBOARD);
@@ -71,26 +70,35 @@ function App() {
     const isRemoteUpdate = React.useRef(false);
 
     // Global State
-    const [users, setUsers] = useState<User[]>(savedState?.users || DEFAULT_USERS);
-    const [departments, setDepartments] = useState<Department[]>(savedState?.departments || DEFAULT_DEPARTMENTS);
-    const [processes, setProcesses] = useState<Process[]>(savedState?.processes || DEFAULT_PROCESSES);
-    const [risks, setRisks] = useState<RiskItem[]>(savedState?.risks || DEFAULT_RISKS);
-    const [controls, setControls] = useState<Control[]>(savedState?.controls || DEFAULT_CONTROLS);
-    const [events, setEvents] = useState<OpEvent[]>(savedState?.events || DEFAULT_EVENTS);
+    const [users, setUsers] = useState<User[]>(DEFAULT_USERS);
+    const [departments, setDepartments] = useState<Department[]>(DEFAULT_DEPARTMENTS);
+    const [processes, setProcesses] = useState<Process[]>(DEFAULT_PROCESSES);
+    const [risks, setRisks] = useState<RiskItem[]>(DEFAULT_RISKS);
+    const [controls, setControls] = useState<Control[]>(DEFAULT_CONTROLS);
+    const [events, setEvents] = useState<OpEvent[]>(DEFAULT_EVENTS);
 
-    // Subscribe to cross-tab updates
+    // Sync with Supabase
     useEffect(() => {
-        const unsubscribe = PersistenceService.subscribe((newState) => {
-            console.log('Applying remote update...');
-            isRemoteUpdate.current = true;
-            // Batched updates
-            setUsers(newState.users);
-            setDepartments(newState.departments);
-            setProcesses(newState.processes);
-            setRisks(newState.risks);
-            setControls(newState.controls);
-            setEvents(newState.events);
+        const fetchInitial = async () => {
+            const data = await PersistenceService.loadFromSupabase();
+            if (data) {
+                isRemoteUpdate.current = true;
+                setUsers(data.users);
+                setDepartments(data.departments);
+                setProcesses(data.processes);
+                setRisks(data.risks);
+                setControls(data.controls);
+                setEvents(data.events);
+            }
+        };
+
+        fetchInitial();
+
+        const unsubscribe = PersistenceService.subscribeToChanges(() => {
+            // On any remote change, re-fetch the whole state
+            fetchInitial();
         });
+
         return unsubscribe;
     }, []);
 
@@ -124,14 +132,10 @@ function App() {
         };
 
         if (isRemoteUpdate.current) {
-            // If this update was triggered by a remote sync, do not broadcast it back
             isRemoteUpdate.current = false;
-            // We still save to localStorage to ensure this tab's storage is consistent 
-            // (though BroadcastChannel handler in PersistenceService doesn't write to LS, assuming this effect does)
-            PersistenceService.save(currentState, false);
         } else {
-            // Local change, save and broadcast
-            PersistenceService.save(currentState, true);
+            // Local change, save to Supabase
+            PersistenceService.save(currentState);
         }
     }, [users, events, departments, processes, risks, controls]);
 
