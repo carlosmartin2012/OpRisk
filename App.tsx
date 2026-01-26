@@ -66,8 +66,9 @@ function App() {
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [language, setLanguage] = useState<Language>('EN');
 
-    // Ref to prevent broadcasting updates that came from synchronization
+    // Refs to prevent synchronization feedback loops
     const isRemoteUpdate = React.useRef(false);
+    const lastLocalSave = React.useRef(0);
 
     // Global State
     const [users, setUsers] = useState<User[]>(DEFAULT_USERS);
@@ -95,8 +96,12 @@ function App() {
         fetchInitial();
 
         const unsubscribe = PersistenceService.subscribeToChanges(() => {
-            // On any remote change, re-fetch the whole state
-            fetchInitial();
+            // Only update if we haven't recently saved locally (prevent flicker)
+            const now = Date.now();
+            if (now - lastLocalSave.current > 2000) {
+                console.log('Remote update received, fetching...');
+                fetchInitial();
+            }
         });
 
         return unsubscribe;
@@ -122,6 +127,11 @@ function App() {
 
     // Persistence Effect
     useEffect(() => {
+        if (isRemoteUpdate.current) {
+            isRemoteUpdate.current = false;
+            return;
+        }
+
         const currentState: AppState = {
             users,
             events,
@@ -131,12 +141,9 @@ function App() {
             controls
         };
 
-        if (isRemoteUpdate.current) {
-            isRemoteUpdate.current = false;
-        } else {
-            // Local change, save to Supabase
-            PersistenceService.save(currentState);
-        }
+        // Mark local save time and push to Supabase
+        lastLocalSave.current = Date.now();
+        PersistenceService.save(currentState);
     }, [users, events, departments, processes, risks, controls]);
 
     if (!user) {

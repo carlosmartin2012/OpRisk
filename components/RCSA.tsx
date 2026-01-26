@@ -4,6 +4,7 @@ import { Department, Process, RiskItem, Control, Language, TRANSLATIONS } from '
 import { Folder, ChevronRight, AlertTriangle, Table as TableIcon, Network, User, ZoomIn, ZoomOut, Move, Plus, Upload, Save, X, Trash2 } from 'lucide-react';
 import RCSAForm from './RCSAForm';
 import ImportDrawer from './ImportDrawer';
+import { PersistenceService } from '../src/services/persistence';
 
 interface RCSAProps {
     language: Language;
@@ -41,21 +42,20 @@ const RCSA: React.FC<RCSAProps> = ({
 
         if (type === 'dept') {
             setDepartments(departments.filter(d => d.id !== id));
-            setProcesses(processes.filter(p => p.departmentId !== id)); // Cascade
-            // Could cascade further but simple for now
-            if (selectedDept === id) setSelectedDept(null);
+            setProcesses(processes.filter(p => p.departmentId !== id));
+            PersistenceService.delete('departments', id);
         } else if (type === 'process') {
             setProcesses(processes.filter(p => p.id !== id));
             setRisks(risks.filter(r => r.processId !== id));
-            if (selectedProcess === id) setSelectedProcess(null);
+            PersistenceService.delete('processes', id);
         } else if (type === 'risk') {
             setRisks(risks.filter(r => r.id !== id));
             setControls(controls.filter(c => c.riskId !== id));
-            if (selectedRisk === id) setSelectedRisk(null);
+            PersistenceService.delete('risks', id);
         } else if (type === 'control') {
             setControls(controls.filter(c => c.id !== id));
-            // Remove from risk controlIds list (optional if we purely filter by riskId)
             setRisks(risks.map(r => ({ ...r, controlIds: r.controlIds.filter(cid => cid !== id) })));
+            PersistenceService.delete('controls', id);
         }
     };
 

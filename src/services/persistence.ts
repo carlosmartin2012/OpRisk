@@ -94,6 +94,14 @@ export const PersistenceService = {
         }
     },
 
+    delete: async (table: string, id: string) => {
+        try {
+            await supabase.from(table).delete().eq('id', id);
+        } catch (e) {
+            console.error(`Supabase delete error on ${table}:`, e);
+        }
+    },
+
     subscribeToChanges: (onUpdate: () => void) => {
         const channel = supabase
             .channel('db-changes')

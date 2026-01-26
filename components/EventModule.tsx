@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Plus, Search, Filter, Upload, MoreVertical, CheckCircle, XCircle, Edit, Save, X } from 'lucide-react';
 import { EBA_EVENT_TYPES, EBA_EVENT_TYPES_HIERARCHY, BUSINESS_LINES, OpEvent, Language, TRANSLATIONS, User, Department, Process } from '../types';
 import ImportDrawer from './ImportDrawer';
+import { PersistenceService } from '../src/services/persistence';
+import { Trash2 } from 'lucide-react';
 
 interface EventModuleProps {
     language: Language;
@@ -325,6 +327,13 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
         setEditingEvent(null);
     };
 
+    const handleDeleteEvent = (id: string) => {
+        if (!window.confirm("Are you sure you want to delete this event?")) return;
+        setEvents(events.filter(e => e.id !== id));
+        PersistenceService.delete('events', id);
+        setActiveActionId(null);
+    };
+
     const StatusBadge = ({ status }: { status: string }) => {
         let colorClass = 'bg-slate-500/20 text-slate-500';
         if (status === 'Approved') colorClass = 'bg-emerald-500/20 text-emerald-500';
@@ -432,6 +441,14 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
                                                             className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center"
                                                         >
                                                             <Edit className="w-4 h-4 mr-2" /> {t.edit}
+                                                        </button>
+                                                    )}
+                                                    {canEdit && (
+                                                        <button
+                                                            onClick={() => handleDeleteEvent(evt.id)}
+                                                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
+                                                        >
+                                                            <Trash2 className="w-4 h-4 mr-2" /> Delete
                                                         </button>
                                                     )}
                                                     {!canEdit && !canValidate && (
