@@ -199,10 +199,54 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
     const t = TRANSLATIONS[language];
     const [activeActionId, setActiveActionId] = useState<string | null>(null);
 
+    // Filters State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterDept, setFilterDept] = useState('');
+    const [filterProcess, setFilterProcess] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
+    const [filterBusinessLine, setFilterBusinessLine] = useState('');
+    const [filterEventType, setFilterEventType] = useState('');
+
     // Permissions Logic
     // Administrator has full permissions
     const canEdit = user?.role === 'OpRisk' || user?.role === 'First Line' || user?.role === 'Administrator';
     const canValidate = user?.role === 'OpRisk' || user?.role === 'Administrator';
+
+    // Data Processing (Filtering)
+    const filteredEvents = React.useMemo(() => {
+        let result = [...events];
+
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter(e =>
+                e.title.toLowerCase().includes(query) ||
+                e.id.toLowerCase().includes(query) ||
+                e.description.toLowerCase().includes(query)
+            );
+        }
+
+        if (filterDept) {
+            result = result.filter(e => e.department === filterDept);
+        }
+
+        if (filterProcess) {
+            result = result.filter(e => e.processId === filterProcess);
+        }
+
+        if (filterStatus) {
+            result = result.filter(e => e.status === filterStatus);
+        }
+
+        if (filterBusinessLine) {
+            result = result.filter(e => e.businessLine === filterBusinessLine);
+        }
+
+        if (filterEventType) {
+            result = result.filter(e => e.eventType === filterEventType);
+        }
+
+        return result;
+    }, [events, searchQuery, filterDept, filterProcess, filterStatus, filterBusinessLine, filterEventType]);
 
     // State
     const [editingEvent, setEditingEvent] = useState<OpEvent | null>(null);
@@ -377,14 +421,70 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
             </div>
 
             {/* Filters Bar */}
-            <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md p-4 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
-                    <input type="text" placeholder="Search events..." className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-brown" />
+            <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md p-4 rounded-xl border border-slate-200 dark:border-white/5 space-y-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Search by title, ID or description..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-brown"
+                        />
+                    </div>
                 </div>
-                <button className="flex items-center px-4 py-2 border border-slate-200 dark:border-white/10 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5">
-                    <Filter className="w-4 h-4 mr-2" /> Filter
-                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <select
+                        value={filterDept}
+                        onChange={(e) => { setFilterDept(e.target.value); setFilterProcess(''); }}
+                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-sm p-2"
+                    >
+                        <option value="">All Departments</option>
+                        {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                    </select>
+
+                    <select
+                        value={filterProcess}
+                        onChange={(e) => setFilterProcess(e.target.value)}
+                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-sm p-2"
+                    >
+                        <option value="">All Processes</option>
+                        {processes
+                            .filter(p => !filterDept || departments.find(d => d.id === p.departmentId)?.name === filterDept)
+                            .map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+
+                    <select
+                        value={filterBusinessLine}
+                        onChange={(e) => setFilterBusinessLine(e.target.value)}
+                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-sm p-2"
+                    >
+                        <option value="">All Business Lines</option>
+                        {BUSINESS_LINES.map(bl => <option key={bl} value={bl}>{bl}</option>)}
+                    </select>
+
+                    <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-sm p-2"
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Pending Validation">Pending</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+
+                    <select
+                        value={filterEventType}
+                        onChange={(e) => setFilterEventType(e.target.value)}
+                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-sm p-2"
+                    >
+                        <option value="">All Event Types</option>
+                        {EBA_EVENT_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+                    </select>
+                </div>
             </div>
 
             {/* Data Table */}
@@ -404,7 +504,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200 dark:divide-white/5">
-                            {events.map((evt) => (
+                            {filteredEvents.map((evt) => (
                                 <tr key={evt.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group relative">
                                     <td className="py-4 px-6 relative">
                                         <div className="relative">

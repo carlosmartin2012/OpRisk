@@ -96,12 +96,8 @@ function App() {
         fetchInitial();
 
         const unsubscribe = PersistenceService.subscribeToChanges(() => {
-            // Only update if we haven't recently saved locally (prevent flicker)
-            const now = Date.now();
-            if (now - lastLocalSave.current > 2000) {
-                console.log('Remote update received, fetching...');
-                fetchInitial();
-            }
+            console.log('Real-time database change detected...');
+            fetchInitial();
         });
 
         return unsubscribe;
