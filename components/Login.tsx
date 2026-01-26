@@ -71,14 +71,18 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
                     client_id: "305790686148-es7bm0pg9ku4voheub6g7i2i2i88psn7.apps.googleusercontent.com",
                     callback: handleCredentialResponse,
                     auto_select: false,
+                    context: 'signin',
+                    itp_support: true
                 });
 
                 window.google.accounts.id.renderButton(googleButtonRef.current, {
+                    type: "standard",
                     theme: "outline",
                     size: "large",
                     width: 320,
                     text: "signin_with",
-                    shape: "pill"
+                    shape: "pill",
+                    logo_alignment: "left"
                 });
                 clearInterval(interval);
             }
