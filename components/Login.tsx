@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Lock, ArrowRight } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { User, UserRole } from '../types';
 
 interface LoginProps {
@@ -16,29 +16,27 @@ declare global {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
-    const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [showManual, setShowManual] = useState(false);
     const googleButtonRef = React.useRef<HTMLDivElement>(null);
 
     const processLogin = (userEmail: string, userName?: string) => {
-        const lowerEmail = userEmail.toLowerCase().trim();
-        if (!lowerEmail.endsWith('@nfq.es')) {
+        const email = userEmail.toLowerCase().trim();
+        if (!email.endsWith('@nfq.es')) {
             setError('Access restricted to @nfq.es domains.');
             setLoading(false);
             return;
         }
 
-        let existingUser = users.find(u => u.email.toLowerCase() === lowerEmail);
+        let existingUser = users.find(u => u.email.toLowerCase() === email);
 
         if (!existingUser) {
-            const name = userName || lowerEmail.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-            const role: UserRole = lowerEmail === 'carlos.martin@nfq.es' ? 'Administrator' : 'OpRisk';
+            const name = userName || email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+            const role: UserRole = email === 'carlos.martin@nfq.es' ? 'Administrator' : 'OpRisk';
 
             existingUser = {
                 id: `U-${Date.now()}`,
-                email: lowerEmail,
+                email: email,
                 name: name,
                 role: role,
                 department: 'Operations',
@@ -66,100 +64,79 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
         }
     };
 
-    const handleManualSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-        setTimeout(() => processLogin(email), 800);
-    };
-
     React.useEffect(() => {
         const interval = setInterval(() => {
             if (window.google && googleButtonRef.current) {
                 window.google.accounts.id.initialize({
                     client_id: "305790686148-es7bm0pg9ku4voheub6g7i2i2i88psn7.apps.googleusercontent.com",
                     callback: handleCredentialResponse,
+                    auto_select: false,
                 });
-                window.google.accounts.id.renderButton(googleButtonRef.current, { theme: "filled_blue", size: "large", width: 320 });
+                window.google.accounts.id.renderButton(googleButtonRef.current, {
+                    theme: "outline",
+                    size: "large",
+                    width: 320,
+                    text: "continue_with",
+                    shape: "pill"
+                });
                 clearInterval(interval);
             }
         }, 500);
         return () => clearInterval(interval);
-    }, [users, showManual]);
+    }, [users]);
 
     return (
-        <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4 relative">
-            <div className="absolute top-0 left-0 w-96 h-96 bg-brand-brown/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-brown/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+        <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
+            {/* Header Branding */}
+            <div className="flex flex-col items-center mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+                <div className="flex items-center gap-4 mb-2">
+                    <img src="/nfq-n.png" alt="NFQ Logo" className="h-16 w-auto" />
+                    <h1 className="text-4xl font-bold tracking-tight text-white">OpRisk</h1>
+                </div>
+                <p className="text-slate-400 text-sm font-medium tracking-wide">
+                    Operational Risk Management Platform
+                </p>
+            </div>
 
-            <div className="w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl relative z-10">
-                <div className="text-center mb-10">
-                    <div className="flex items-center justify-center gap-4 mb-4">
-                        <img src="/nfq-n.png" alt="NFQ Logo" className="h-14 w-auto" />
-                        <div className="h-10 w-px bg-white/20"></div>
-                        <h1 className="text-3xl font-black tracking-tighter text-white">OpRisk</h1>
-                    </div>
-                    <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">Next Gen Risk Management</p>
+            {/* Login Card */}
+            <div className="w-full max-w-md bg-[#161616] border border-white/5 p-10 rounded-[32px] shadow-2xl relative">
+                <div className="mb-10">
+                    <h2 className="text-2xl font-bold text-white mb-2">Welcome</h2>
+                    <p className="text-slate-400 text-sm">
+                        Sign in to access your operational risk dashboard
+                    </p>
                 </div>
 
-                <div className="space-y-6">
-                    {!showManual ? (
-                        <div className="flex flex-col items-center space-y-6">
-                            <div ref={googleButtonRef} className="w-full flex justify-center min-h-[44px]"></div>
-                            <div className="w-full flex items-center gap-3">
-                                <div className="h-px bg-white/10 flex-1"></div>
-                                <span className="text-xs text-slate-500 font-medium uppercase tracking-tighter">or use corporate SSO</span>
-                                <div className="h-px bg-white/10 flex-1"></div>
-                            </div>
-                            <button
-                                onClick={() => setShowManual(true)}
-                                className="text-slate-400 hover:text-white text-xs transition-colors flex items-center gap-1 font-medium"
-                            >
-                                <Lock className="w-3 h-3" /> Use NFQ Email Access
-                            </button>
+                <div className="space-y-8">
+                    <div className="flex flex-col items-center">
+                        {/* Custom visual container for Google button to match the image style */}
+                        <div className="w-full relative group">
+                            <div ref={googleButtonRef} className="flex justify-center transition-transform active:scale-[0.98]"></div>
+                            {loading && (
+                                <div className="absolute inset-0 bg-[#161616]/80 backdrop-blur-sm flex items-center justify-center rounded-full">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                </div>
+                            )}
                         </div>
-                    ) : (
-                        <form onSubmit={handleManualSubmit} className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                            <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Corporate Email</label>
-                                <input
-                                    type="email" required autoFocus
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="name@nfq.es"
-                                    className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-brand-brown outline-none transition-all"
-                                />
-                            </div>
-                            <button
-                                type="submit" disabled={loading}
-                                className="w-full bg-brand-brown hover:bg-orange-800 text-white font-bold py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 group"
-                            >
-                                {loading ? 'Authenticating...' : (
-                                    <>
-                                        Enter System <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                    </>
-                                )}
-                            </button>
-                            <button
-                                type="button" onClick={() => setShowManual(false)}
-                                className="w-full text-slate-500 hover:text-slate-300 text-[10px] font-bold uppercase"
-                            >
-                                Back to Google Sign-in
-                            </button>
-                        </form>
-                    )}
+                    </div>
 
                     {error && (
-                        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-100 text-[11px] flex items-center gap-2 animate-pulse">
+                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-100 text-xs flex items-center gap-2 animate-in fade-in zoom-in duration-300">
                             <Lock className="w-3 h-3 flex-shrink-0" />
                             <span>{error}</span>
                         </div>
                     )}
-                </div>
 
-                <div className="mt-12 pt-6 border-t border-white/5 text-center text-[10px] text-slate-600 font-bold uppercase tracking-widest">
-                    &copy; 2024 NFQ Advisory Services. All rights reserved.
+                    <div className="pt-6 border-t border-white/5">
+                        <p className="text-[10px] text-slate-500 text-center leading-relaxed">
+                            By signing in, you agree to our <span className="underline cursor-pointer hover:text-slate-300">Terms of Service</span> and <span className="underline cursor-pointer hover:text-slate-300">Privacy Policy</span>
+                        </p>
+                    </div>
                 </div>
+            </div>
+
+            <div className="mt-12 text-slate-700 text-[10px] font-bold uppercase tracking-widest">
+                &copy; 2024 NFQ Advisory Services
             </div>
         </div>
     );
