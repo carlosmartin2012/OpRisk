@@ -296,16 +296,18 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
 
         if (items.length > 0) {
             // Overwrite logic: if title matches exactly, replace. (Simplified for events)
-            const updatedEvents = [...events];
-            items.forEach(newItem => {
-                const existingIndex = updatedEvents.findIndex(e => e.title.trim() === newItem.title.trim());
-                if (existingIndex !== -1) {
-                    updatedEvents[existingIndex] = { ...newItem, id: updatedEvents[existingIndex].id };
-                } else {
-                    updatedEvents.unshift(newItem);
-                }
+            setEvents(prev => {
+                const next = [...prev];
+                items.forEach(newItem => {
+                    const existingIndex = next.findIndex(e => e.title.trim() === newItem.title.trim());
+                    if (existingIndex !== -1) {
+                        next[existingIndex] = { ...newItem, id: next[existingIndex].id };
+                    } else {
+                        next.unshift(newItem);
+                    }
+                });
+                return next;
             });
-            setEvents(updatedEvents);
             logAction('Data', 'Import', `Imported ${items.length} events from ${fileName}`);
             alert(`Successfully imported ${items.length} events.`);
         }
@@ -313,27 +315,30 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
 
     const handleCreateEvent = (e: React.FormEvent) => {
         e.preventDefault();
-        const generatedId = `EVT-${new Date().getFullYear()}-${String(events.length + 1).padStart(3, '0')}`;
-        const eventToSave = {
-            ...newEvent,
-            id: generatedId,
-            auditTrail: [{
-                date: new Date().toLocaleString(),
-                user: user?.email || 'Unknown',
-                action: "Created Manually",
-                module: 'Data',
-                type: 'Creation'
-            }]
-        };
-        setEvents([eventToSave, ...events]);
-        logAction('Data', 'Creation', `Manually created event ${generatedId}`);
+        setEvents(prev => {
+            const generatedId = `EVT-${new Date().getFullYear()}-${String(prev.length + 1).padStart(3, '0')}`;
+            const eventToSave: OpEvent = {
+                ...newEvent,
+                id: generatedId,
+                auditTrail: [{
+                    date: new Date().toLocaleString(),
+                    user: user?.email || 'Unknown',
+                    action: "Created Manually",
+                    module: 'Data',
+                    type: 'Creation'
+                }]
+            };
+            // Log in audit log as well
+            setTimeout(() => logAction('Data', 'Creation', `Manually created event ${generatedId}`), 0);
+            return [eventToSave, ...prev];
+        });
         setIsCreating(false);
         setNewEvent(emptyEvent); // Reset
     };
 
     const handleStatusChange = (id: string, newStatus: 'Approved' | 'Rejected') => {
         if (!canValidate) return;
-        setEvents(events.map(e => {
+        setEvents(prev => prev.map(e => {
             if (e.id === id) {
                 return {
                     ...e,
@@ -366,7 +371,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
         e.preventDefault();
         if (!editingEvent) return;
 
-        setEvents(events.map(evt => {
+        setEvents(prev => prev.map(evt => {
             if (evt.id === editingEvent.id) {
                 return {
                     ...editingEvent,
@@ -390,7 +395,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
 
     const handleDeleteEvent = (id: string) => {
         if (!window.confirm("Are you sure you want to delete this event?")) return;
-        setEvents(events.filter(e => e.id !== id));
+        setEvents(prev => prev.filter(e => e.id !== id));
         logAction('Data', 'Delete', `Deleted event ${id}`);
         PersistenceService.delete('events', id);
         setActiveActionId(null);

@@ -12,6 +12,8 @@ import UserManagement from './components/UserManagement';
 import { ViewState, User, Language, Department, Process, RiskItem, Control, OpEvent, AuditLog } from './types';
 import { PersistenceService, AppState } from './src/services/persistence';
 
+const SYNC_COOLDOWN = 2000; // Ignore remote updates for 2s after local save
+
 // --- DEFAULT DATA ---
 const DEFAULT_USERS: User[] = [
     { id: 'U4', email: 'carlos.martin@nfq.es', name: 'Carlos Martin', role: 'Administrator', department: 'Management', lastLogin: '2023-10-26 11:00', status: 'Active' },
@@ -93,7 +95,13 @@ function App() {
 
     // Sync with Supabase
     useEffect(() => {
-        const fetchInitial = async () => {
+        const fetchInitial = async (isManualSync = false) => {
+            // If we just saved locally, don't fetch from remote (it might be stale)
+            if (!isManualSync && Date.now() - lastLocalSave.current < SYNC_COOLDOWN) {
+                console.log('Skipping remote sync: too close to local save');
+                return;
+            }
+
             const data = await PersistenceService.loadFromSupabase();
             if (data) {
                 isRemoteUpdate.current = true;
@@ -107,7 +115,7 @@ function App() {
             }
         };
 
-        fetchInitial();
+        fetchInitial(true); // Initial load is mandatory
 
         const unsubscribe = PersistenceService.subscribeToChanges(() => {
             console.log('Real-time database change detected...');
