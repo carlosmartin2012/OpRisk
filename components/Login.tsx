@@ -77,7 +77,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
         const interval = setInterval(() => {
             if (window.google && googleButtonRef.current) {
                 window.google.accounts.id.initialize({
-                    client_id: "788059882672-m9psk0p3l506n7vqund21o5n857puj6p.apps.googleusercontent.com",
+                    client_id: "305790686148-es7bm0pg9ku4voheub6g7i2i2i88psn7.apps.googleusercontent.com",
                     callback: handleCredentialResponse,
                 });
                 window.google.accounts.id.renderButton(googleButtonRef.current, { theme: "filled_blue", size: "large", width: 320 });
@@ -94,8 +94,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
 
             <div className="w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl relative z-10">
                 <div className="text-center mb-10">
-                    <img src="/logo.png" alt="Alquid Logo" className="h-20 mx-auto mb-2 object-contain" />
-                    <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">Next Gen Risk Management</p>
+                    <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">ALQUID OpRisk — Next Gen Risk Management</p>
                 </div>
 
                 <div className="space-y-6">
@@ -153,12 +152,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
                     )}
                 </div>
 
-                <div className="mt-12 pt-6 border-t border-white/5 text-center text-[10px] text-slate-500 flex flex-col items-center justify-center gap-2">
-                    <div className="flex items-center gap-2 opacity-30 grayscale">
-                        <img src="/logo.png" alt="mini-logo" className="h-3" />
-                        <span>Powered by NFQ</span>
-                    </div>
-                    <p>&copy; 2024 NFQ Advisory Services. All rights reserved.</p>
+                <div className="mt-12 pt-6 border-t border-white/5 text-center text-[10px] text-slate-600 font-bold uppercase tracking-widest">
+                    &copy; 2024 NFQ Advisory Services. All rights reserved.
                 </div>
             </div>
         </div>
