@@ -19,8 +19,22 @@ const AuditLogs: React.FC<AuditLogsProps> = ({ language }) => {
     ];
 
     const exportToExcel = () => {
-        // Simulation
-        alert("Downloading Audit_Logs_Export.xlsx ...");
+        const headers = ["Date", "User", "Module", "Type", "Action Details"];
+        const rows = logs.map(l => [l.date, l.user, l.module, l.type, l.action]);
+
+        const csvContent = [
+            headers.join(";"),
+            ...rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(";"))
+        ].join("\n");
+
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Audit_Logs_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     return (
@@ -30,7 +44,7 @@ const AuditLogs: React.FC<AuditLogsProps> = ({ language }) => {
                     <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{t.auditLogs}</h2>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">System-wide activity tracking</p>
                 </div>
-                <button 
+                <button
                     onClick={exportToExcel}
                     className="flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm transition-colors"
                 >
@@ -40,10 +54,10 @@ const AuditLogs: React.FC<AuditLogsProps> = ({ language }) => {
 
             <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
                 <div className="p-4 border-b border-slate-200 dark:border-white/5 flex gap-4">
-                     <div className="relative flex-1 max-w-md">
-                         <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                         <input type="text" placeholder="Search logs..." className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg text-sm" />
-                     </div>
+                    <div className="relative flex-1 max-w-md">
+                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                        <input type="text" placeholder="Search logs..." className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-lg text-sm" />
+                    </div>
                 </div>
                 <table className="w-full text-left border-collapse">
                     <thead>
@@ -63,10 +77,10 @@ const AuditLogs: React.FC<AuditLogsProps> = ({ language }) => {
                                 <td className="py-3 px-6 text-sm text-slate-500">{log.module}</td>
                                 <td className="py-3 px-6">
                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase 
-                                        ${log.type === 'Delete' ? 'bg-red-100 text-red-700' : 
-                                          log.type === 'Import' ? 'bg-blue-100 text-blue-700' :
-                                          log.type === 'Validation' ? 'bg-green-100 text-green-700' :
-                                          'bg-slate-100 text-slate-700'}`}>
+                                        ${log.type === 'Delete' ? 'bg-red-100 text-red-700' :
+                                            log.type === 'Import' ? 'bg-blue-100 text-blue-700' :
+                                                log.type === 'Validation' ? 'bg-green-100 text-green-700' :
+                                                    'bg-slate-100 text-slate-700'}`}>
                                         {log.type}
                                     </span>
                                 </td>

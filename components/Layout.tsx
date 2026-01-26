@@ -252,13 +252,14 @@ const Layout: React.FC<LayoutProps> = ({
               </div>
 
               <div className="pt-6 border-t border-slate-200 dark:border-white/10 no-print">
-                <button
-                  onClick={() => window.print()}
-                  className="w-full flex items-center justify-center px-4 py-3 bg-brand-brown hover:bg-orange-800 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-brown/20"
+                <a
+                  href="/Manual_OpRisk_NFQ.pdf"
+                  download="Manual_OpRisk_NFQ.pdf"
+                  className="w-full flex items-center justify-center px-4 py-3 bg-brand-brown hover:bg-orange-800 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-brown/20 no-underline cursor-pointer"
                 >
                   <Download className="w-5 h-5 mr-2" />
-                  Save Manual as PDF
-                </button>
+                  Download Official PDF Manual
+                </a>
               </div>
             </div>
           </div>
