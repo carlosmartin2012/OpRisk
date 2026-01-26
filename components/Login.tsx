@@ -70,9 +70,10 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
                 window.google.accounts.id.initialize({
                     client_id: "305790686148-es7bm0pg9ku4voheub6g7i2i2i88psn7.apps.googleusercontent.com",
                     callback: handleCredentialResponse,
-                    auto_select: false,
+                    auto_select: false, // Prevents automatic selection
+                    itp_support: true,   // Disables personalization/one-tap in some contexts
                     context: 'signin',
-                    itp_support: true
+                    ux_mode: 'popup' // Explicitly set ux_mode to 'popup'
                 });
 
                 window.google.accounts.id.renderButton(googleButtonRef.current, {
@@ -80,10 +81,14 @@ const Login: React.FC<LoginProps> = ({ onLogin, users, setUsers }) => {
                     theme: "outline",
                     size: "large",
                     width: 320,
-                    text: "signin_with",
+                    text: "continue_with", // Shows "Continue with Google"
                     shape: "pill",
                     logo_alignment: "left"
                 });
+
+                // Ensure no floating "One Tap" prompt is shown
+                window.google.accounts.id.cancel();
+
                 clearInterval(interval);
             }
         }, 500);
