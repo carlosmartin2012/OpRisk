@@ -1,0 +1,5 @@
+Type;ID;Name;ParentID;Owner;Description;InherentProb;InherentImpact;ResidualProb;ResidualImpact;ControlType;Frequency;TestFrequency
+DEPT;DEP-MAD;Madrid Operations;;Carlos Martin;Central Madrid Hub;;;;;;;
+PROC;PRC-ATM;ATM Cash Management;DEP-MAD;Jose Garcia;End to end ATM ops;;;;;;;
+RISK;RSK-SKIM;Card Skimming Risks;PRC-ATM;Jose Garcia;Internal/External cloning;4;5;2;3;;;
+CTRL;CTL-CAM;CCTV Monitoring;RSK-SKIM;Security Team;Real time cameras;;;;;Preventive;Daily;Monthly

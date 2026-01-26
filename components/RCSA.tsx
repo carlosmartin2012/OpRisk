@@ -5,6 +5,7 @@ import { Folder, ChevronRight, AlertTriangle, Table as TableIcon, Network, User,
 import RCSAForm from './RCSAForm';
 import ImportDrawer from './ImportDrawer';
 import { PersistenceService } from '../src/services/persistence';
+import { FileParsingService, ValidationError } from '../src/services/FileParsingService';
 
 interface RCSAProps {
     language: Language;
@@ -114,10 +115,75 @@ const RCSA: React.FC<RCSAProps> = ({
         setCreateModalType(null);
     };
 
-    const handleImportSubmit = (files: File[]) => {
-        // Simulate Import
-        // In future check 'importType' state to decide where to push data
-        alert(`Simulated import of ${files.length} files into ${importType}`);
+    const handleImportSubmit = (content: string, fileName: string) => {
+        const rawData = FileParsingService.parseCsv(content);
+        if (rawData.length < 2) return;
+
+        const { departments: newDepts, processes: newProcs, risks: newRisks, controls: newCtrls, errors } = FileParsingService.processRCSA(rawData);
+
+        if (errors.length > 0) {
+            const report = FileParsingService.generateErrorReport(errors);
+            const blob = new Blob([report], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Errors_Import_RCSA_${new Date().getTime()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            alert(`Import finished with ${errors.length} errors. An error report has been downloaded.`);
+        }
+
+        // --- MERGE LOGIC (OVERWRITE BY NAME) ---
+        if (newDepts.length > 0) {
+            setDepartments(prev => {
+                const next = [...prev];
+                newDepts.forEach(d => {
+                    const idx = next.findIndex(p => p.name.trim() === d.name.trim());
+                    if (idx !== -1) next[idx] = { ...d, id: next[idx].id };
+                    else next.push(d);
+                });
+                return next;
+            });
+        }
+
+        if (newProcs.length > 0) {
+            setProcesses(prev => {
+                const next = [...prev];
+                newProcs.forEach(p => {
+                    const idx = next.findIndex(old => old.name.trim() === p.name.trim());
+                    if (idx !== -1) next[idx] = { ...p, id: next[idx].id };
+                    else next.push(p);
+                });
+                return next;
+            });
+        }
+
+        if (newRisks.length > 0) {
+            setRisks(prev => {
+                const next = [...prev];
+                newRisks.forEach(r => {
+                    const idx = next.findIndex(old => old.name.trim() === r.name.trim());
+                    if (idx !== -1) next[idx] = { ...r, id: next[idx].id, controlIds: next[idx].controlIds };
+                    else next.push(r);
+                });
+                return next;
+            });
+        }
+
+        if (newCtrls.length > 0) {
+            setControls(prev => {
+                const next = [...prev];
+                newCtrls.forEach(c => {
+                    const idx = next.findIndex(old => old.name.trim() === c.name.trim());
+                    if (idx !== -1) next[idx] = { ...c, id: next[idx].id };
+                    else next.push(c);
+                });
+                return next;
+            });
+        }
+
+        alert("Import completed successfully.");
         setIsImporting(false);
     };
 

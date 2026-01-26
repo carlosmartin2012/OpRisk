@@ -5,6 +5,7 @@ import { EBA_EVENT_TYPES, EBA_EVENT_TYPES_HIERARCHY, BUSINESS_LINES, OpEvent, La
 import ImportDrawer from './ImportDrawer';
 import { PersistenceService } from '../src/services/persistence';
 import { Trash2 } from 'lucide-react';
+import { FileParsingService, ValidationError } from '../src/services/FileParsingService';
 
 interface EventModuleProps {
     language: Language;
@@ -273,28 +274,39 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
 
     const [newEvent, setNewEvent] = useState<OpEvent>(emptyEvent);
 
-    const handleCsvImport = (files: File[]) => {
-        // Simulating CSV Import
-        // Using files argument to simulate responsiveness
-        const importedEvents: OpEvent[] = [
-            {
-                id: `EVT-${new Date().getFullYear()}-${String(events.length + 1).padStart(3, '0')}`,
-                dateDiscovery: new Date().toISOString().split('T')[0],
-                title: `Imported from ${files[0].name}`,
-                amount: 50000,
-                currency: "EUR",
-                eventType: "Clients, Products & Business Practices",
-                eventTypeLevel2: "Improper Business or Market Practices",
-                businessLine: "Commercial Banking",
-                processId: processes.length > 0 ? processes[0].id : 'PROC-UNK',
-                employeeEmail: "data.officer@nfq.es",
-                department: "Information Tech",
-                status: "Pending Validation",
-                description: "Data leak detected in legacy system.",
-                auditTrail: [{ date: new Date().toLocaleString(), user: user?.email || 'unknown', action: "Imported via CSV" }]
-            }
-        ];
-        setEvents([...importedEvents, ...events]);
+    const handleCsvImport = (content: string, fileName: string) => {
+        const rawData = FileParsingService.parseCsv(content);
+        if (rawData.length < 2) return;
+
+        const { items, errors } = FileParsingService.processEvents(rawData, departments, processes);
+
+        if (errors.length > 0) {
+            const report = FileParsingService.generateErrorReport(errors);
+            const blob = new Blob([report], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Errors_Import_Events_${new Date().getTime()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            alert(`Import finished with ${errors.length} errors. An error report has been downloaded.`);
+        }
+
+        if (items.length > 0) {
+            // Overwrite logic: if title matches exactly, replace. (Simplified for events)
+            const updatedEvents = [...events];
+            items.forEach(newItem => {
+                const existingIndex = updatedEvents.findIndex(e => e.title.trim() === newItem.title.trim());
+                if (existingIndex !== -1) {
+                    updatedEvents[existingIndex] = { ...newItem, id: updatedEvents[existingIndex].id };
+                } else {
+                    updatedEvents.unshift(newItem);
+                }
+            });
+            setEvents(updatedEvents);
+            alert(`Successfully imported ${items.length} events.`);
+        }
     };
 
     const handleCreateEvent = (e: React.FormEvent) => {

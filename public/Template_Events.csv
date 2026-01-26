@@ -1,0 +1,3 @@
+Date;Title;Amount;EventType;Level2;BusinessLine;Dept;ProcessID;Description;Email
+2026-01-20;ATM Skimming Madrid;15000;External Fraud;Theft and Fraud;Retail Banking;Madrid Central;PRC-ATM;Loss due to card cloning;carlos.martin@nfq.es
+2026-01-22;Fraudulent Loan App;8500;Internal Fraud;Unauthorized Activity;Commercial Banking;Loans Dept;PRC-LOAN;Employee bypassed validation;risk.manager@nfq.es

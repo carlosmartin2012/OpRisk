@@ -233,21 +233,26 @@ const Layout: React.FC<LayoutProps> = ({
 
                 <section className="border-t border-slate-200 dark:border-white/10 pt-4">
                   <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
-                    <Users className="w-5 h-5 mr-2 text-brand-brown" /> User Management
+                    <Download className="w-5 h-5 mr-2 text-brand-brown" /> CSV Import Formats
                   </h4>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Manage access and roles.
+                    Use semicolon (;) as separator. If validation fails, an error report will be downloaded automatically.
                   </p>
-                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
-                    <li><strong>Roles:</strong>
-                      <ul className="pl-4 list-circle mt-1">
-                        <li><em>Administrator:</em> Full access (System & Business).</li>
-                        <li><em>OpRisk:</em> Validation and oversight authority.</li>
-                        <li><em>First Line:</em> Can report events and view their own data.</li>
-                      </ul>
-                    </li>
-                    <li><strong>Access:</strong> Administrators can add, edit, and delete users.</li>
-                  </ul>
+                  <div className="mt-4 space-y-4">
+                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10">
+                      <p className="text-xs font-bold text-brand-brown mb-1">Events Import Columns:</p>
+                      <code className="text-[10px] block break-all text-slate-500">
+                        Date;Title;Amount;EventType;Level2;BusinessLine;Dept;ProcessID;Description;Email
+                      </code>
+                    </div>
+                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10">
+                      <p className="text-xs font-bold text-brand-brown mb-1">RCSA Import Columns (Dynamic):</p>
+                      <code className="text-[10px] block break-all text-slate-500">
+                        Type;ID;Name;ParentID;Owner;Description;InherentProb;InherentImpact;ResidualProb;ResidualImpact;ControlType;Frequency;TestFrequency
+                      </code>
+                      <p className="text-[10px] text-slate-400 mt-2 italic">* Type must be DEPT, PROC, RISK, or CTRL. ParentID is the ID of the parent element.</p>
+                    </div>
+                  </div>
                 </section>
               </div>
 

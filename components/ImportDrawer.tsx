@@ -5,7 +5,7 @@ interface ImportDrawerProps {
     isOpen: boolean;
     onClose: () => void;
     title: string;
-    onImport: (files: File[]) => void;
+    onImport: (content: string, fileName: string) => void;
 }
 
 const ImportDrawer: React.FC<ImportDrawerProps> = ({ isOpen, onClose, title, onImport }) => {
@@ -38,24 +38,32 @@ const ImportDrawer: React.FC<ImportDrawerProps> = ({ isOpen, onClose, title, onI
         }
     };
 
-    const handleImportClick = () => {
+    const handleImportClick = async () => {
         if (files.length === 0) return;
 
         setIsSimulating(true);
-        // Simulate progress
-        let p = 0;
-        const interval = setInterval(() => {
-            p += 10;
-            setProgress(p);
-            if (p >= 100) {
-                clearInterval(interval);
-                setIsSimulating(false);
-                onImport(files);
-                setFiles([]);
-                setProgress(0);
-                onClose();
-            }
-        }, 150);
+        const file = files[0];
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            const content = e.target?.result as string;
+            // Simulate progress for UX
+            let p = 0;
+            const interval = setInterval(() => {
+                p += 25;
+                setProgress(p);
+                if (p >= 100) {
+                    clearInterval(interval);
+                    setIsSimulating(false);
+                    onImport(content, file.name);
+                    setFiles([]);
+                    setProgress(0);
+                    onClose();
+                }
+            }, 100);
+        };
+
+        reader.readAsText(file);
     };
 
     if (!isOpen) return null;
@@ -74,8 +82,8 @@ const ImportDrawer: React.FC<ImportDrawerProps> = ({ isOpen, onClose, title, onI
 
                 <div
                     className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center transition-all ${isDragging
-                            ? 'border-brand-brown bg-brand-brown/5 scale-105'
-                            : 'border-slate-300 dark:border-slate-700 hover:border-brand-brown/50 hover:bg-slate-50 dark:hover:bg-white/5'
+                        ? 'border-brand-brown bg-brand-brown/5 scale-105'
+                        : 'border-slate-300 dark:border-slate-700 hover:border-brand-brown/50 hover:bg-slate-50 dark:hover:bg-white/5'
                         }`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
