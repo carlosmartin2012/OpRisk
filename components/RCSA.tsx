@@ -426,9 +426,10 @@ const RCSA: React.FC<RCSAProps> = ({
                         <a
                             href="/Template_RCSA.csv"
                             download="Template_RCSA_OpRisk.csv"
-                            className="flex items-center text-xs font-semibold text-brand-brown hover:underline"
+                            className="flex items-center px-3 py-1.5 bg-brand-brown/10 text-brand-brown dark:text-orange-400 border border-brand-brown/20 hover:bg-brand-brown/20 rounded-lg text-xs font-semibold transition-colors"
                         >
-                            <Download className="w-3 h-3 mr-1" /> Template CSV
+                            <Download className="w-3 h-3 mr-2" />
+                            Download Template CSV
                         </a>
                     </div>
                 </div>

@@ -430,9 +430,10 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
                             <a
                                 href="/Template_Events.csv"
                                 download="Template_Events_OpRisk.csv"
-                                className="flex items-center px-3 py-2 text-xs font-semibold text-brand-brown hover:underline"
+                                className="flex items-center px-4 py-2 bg-brand-brown/10 text-brand-brown dark:text-orange-400 border border-brand-brown/20 hover:bg-brand-brown/20 rounded-lg text-sm font-medium transition-colors"
                             >
-                                <Download className="w-3 h-3 mr-1" /> Template
+                                <Download className="w-4 h-4 mr-2" />
+                                Download Template
                             </a>
                         </>
                     )}
