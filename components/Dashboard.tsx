@@ -15,8 +15,9 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { TrendingUp, AlertOctagon, CheckCircle, DollarSign, Calculator, Settings, Filter, X, Shield, ArrowRight } from 'lucide-react';
+import { TrendingUp, AlertOctagon, CheckCircle, DollarSign, Calculator, Settings, Filter, X, Shield, ArrowRight, Printer, Download } from 'lucide-react';
 import { OpEvent, Control } from '../types';
+import { exportCSV, printPage } from '../src/services/reporting';
 
 interface DashboardProps {
   events: OpEvent[];
@@ -122,8 +123,11 @@ const Dashboard: React.FC<DashboardProps> = ({ events, controls }) => {
           >
             <Settings className="w-4 h-4 mr-2" /> Customize View
           </button>
-          <button className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-cyan-500/25">
-            Generate Report
+          <button onClick={() => exportCSV('events', events)} className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors flex items-center">
+            <Download className="w-4 h-4 mr-2" /> Export CSV
+          </button>
+          <button onClick={printPage} className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-cyan-500/25 flex items-center">
+            <Printer className="w-4 h-4 mr-2" /> Print Report
           </button>
         </div>
       </div>

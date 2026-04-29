@@ -9,12 +9,21 @@ import ControlTesting from './components/ControlTesting';
 import CapitalEngine from './components/CapitalEngine';
 import AuditLogs from './components/AuditLogs';
 import UserManagement from './components/UserManagement';
-import { ViewState, User, Language, Department, Process, RiskItem, Control, OpEvent, AuditLog } from './types';
+import KRIs from './components/KRIs';
+import IssuesModule from './components/IssuesModule';
+import Scenarios from './components/Scenarios';
+import RiskAppetite from './components/RiskAppetite';
+import DORA from './components/DORA';
+import DataQuality from './components/DataQuality';
+import Integrations from './components/Integrations';
+import {
+    ViewState, User, Language, Department, Process, RiskItem, Control, OpEvent, AuditLog,
+    KRI, Issue, Scenario, AppetiteStatement, Vendor, BIA, ICTIncident, Integration
+} from './types';
 import { PersistenceService, AppState } from './src/services/persistence';
 
-const SYNC_COOLDOWN = 2000; // Ignore remote updates for 2s after local save
+const SYNC_COOLDOWN = 2000;
 
-// --- DEFAULT DATA ---
 const DEFAULT_USERS: User[] = [
     { id: 'U4', email: 'carlos.martin@nfq.es', name: 'Carlos Martin', role: 'Administrator', department: 'Management', lastLogin: '2023-10-26 11:00', status: 'Active' },
 ];
@@ -61,18 +70,15 @@ const DEFAULT_EVENTS: OpEvent[] = [
 ];
 
 function App() {
-    // Initial data is defaults
-
     const [user, setUser] = useState<User | null>(null);
     const [currentView, setCurrentView] = useState<ViewState>(ViewState.DASHBOARD);
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [language, setLanguage] = useState<Language>('EN');
 
-    // Refs to prevent synchronization feedback loops
     const isRemoteUpdate = React.useRef(false);
     const lastLocalSave = React.useRef(0);
 
-    // Global State
+    // Core state
     const [users, setUsers] = useState<User[]>(DEFAULT_USERS);
     const [departments, setDepartments] = useState<Department[]>(DEFAULT_DEPARTMENTS);
     const [processes, setProcesses] = useState<Process[]>(DEFAULT_PROCESSES);
@@ -80,6 +86,16 @@ function App() {
     const [controls, setControls] = useState<Control[]>(DEFAULT_CONTROLS);
     const [events, setEvents] = useState<OpEvent[]>(DEFAULT_EVENTS);
     const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+
+    // New state (P0 / P1 / P2 / P3)
+    const [kris, setKris] = useState<KRI[]>([]);
+    const [issues, setIssues] = useState<Issue[]>([]);
+    const [scenarios, setScenarios] = useState<Scenario[]>([]);
+    const [appetite, setAppetite] = useState<AppetiteStatement[]>([]);
+    const [vendors, setVendors] = useState<Vendor[]>([]);
+    const [bias, setBias] = useState<BIA[]>([]);
+    const [ictIncidents, setIctIncidents] = useState<ICTIncident[]>([]);
+    const [integrations, setIntegrations] = useState<Integration[]>([]);
 
     const logAction = (module: string, type: AuditLog['type'], action: string) => {
         const newLog: AuditLog = {
@@ -96,12 +112,9 @@ function App() {
     // Sync with Supabase
     useEffect(() => {
         const fetchInitial = async (isManualSync = false) => {
-            // If we just saved locally, don't fetch from remote (it might be stale)
             if (!isManualSync && Date.now() - lastLocalSave.current < SYNC_COOLDOWN) {
-                console.log('Skipping remote sync: too close to local save');
                 return;
             }
-
             const data = await PersistenceService.loadFromSupabase();
             if (data) {
                 isRemoteUpdate.current = true;
@@ -112,20 +125,26 @@ function App() {
                 setControls(data.controls);
                 setEvents(data.events);
                 setAuditLogs(data.auditLogs || []);
+                setKris(data.kris || []);
+                setIssues(data.issues || []);
+                setScenarios(data.scenarios || []);
+                setAppetite(data.appetite || []);
+                setVendors(data.vendors || []);
+                setBias(data.bias || []);
+                setIctIncidents(data.ictIncidents || []);
+                setIntegrations(data.integrations || []);
             }
         };
 
-        fetchInitial(true); // Initial load is mandatory
+        fetchInitial(true);
 
         const unsubscribe = PersistenceService.subscribeToChanges(() => {
-            console.log('Real-time database change detected...');
             fetchInitial();
         });
 
         return unsubscribe;
     }, []);
 
-    // Initialize theme
     useEffect(() => {
         if (isDarkMode) document.documentElement.classList.add('dark');
         else document.documentElement.classList.remove('dark');
@@ -145,27 +164,20 @@ function App() {
         setCurrentView(ViewState.LOGIN);
     };
 
-    // Persistence Effect
+    // Persist on any change
     useEffect(() => {
         if (isRemoteUpdate.current) {
             isRemoteUpdate.current = false;
             return;
         }
-
         const currentState: AppState = {
-            users,
-            events,
-            departments,
-            processes,
-            risks,
-            controls,
-            auditLogs
+            users, events, departments, processes, risks, controls, auditLogs,
+            kris, issues, scenarios, appetite, vendors, bias, ictIncidents, integrations
         };
-
-        // Mark local save time and push to Supabase
         lastLocalSave.current = Date.now();
         PersistenceService.save(currentState);
-    }, [users, events, departments, processes, risks, controls, auditLogs]);
+    }, [users, events, departments, processes, risks, controls, auditLogs,
+        kris, issues, scenarios, appetite, vendors, bias, ictIncidents, integrations]);
 
     if (!user) {
         return <Login onLogin={handleLogin} users={users} setUsers={setUsers} />;
@@ -192,6 +204,7 @@ function App() {
                     setEvents={setEvents}
                     departments={departments}
                     processes={processes}
+                    controls={controls}
                     logAction={logAction}
                 />
             )}
@@ -220,7 +233,47 @@ function App() {
                 />
             )}
 
-            {currentView === ViewState.CAPITAL && <CapitalEngine user={user} logAction={logAction} />}
+            {currentView === ViewState.KRIS && (
+                <KRIs language={language} kris={kris} setKris={setKris} risks={risks} logAction={logAction} />
+            )}
+
+            {currentView === ViewState.ISSUES && (
+                <IssuesModule
+                    language={language}
+                    issues={issues} setIssues={setIssues}
+                    events={events} controls={controls}
+                    logAction={logAction}
+                />
+            )}
+
+            {currentView === ViewState.SCENARIOS && (
+                <Scenarios language={language} scenarios={scenarios} setScenarios={setScenarios} logAction={logAction} />
+            )}
+
+            {currentView === ViewState.APPETITE && (
+                <RiskAppetite language={language} appetite={appetite} setAppetite={setAppetite} events={events} logAction={logAction} />
+            )}
+
+            {currentView === ViewState.CAPITAL && <CapitalEngine user={user} events={events} logAction={logAction} />}
+
+            {currentView === ViewState.DORA && (
+                <DORA
+                    language={language}
+                    vendors={vendors} setVendors={setVendors}
+                    bias={bias} setBias={setBias}
+                    ictIncidents={ictIncidents} setIctIncidents={setIctIncidents}
+                    processes={processes}
+                    logAction={logAction}
+                />
+            )}
+
+            {currentView === ViewState.DATA_QUALITY && (
+                <DataQuality events={events} risks={risks} controls={controls} processes={processes} departments={departments} />
+            )}
+
+            {currentView === ViewState.INTEGRATIONS && (
+                <Integrations language={language} integrations={integrations} setIntegrations={setIntegrations} logAction={logAction} />
+            )}
 
             {currentView === ViewState.AUDIT_LOGS && <AuditLogs language={language} logs={auditLogs} />}
 

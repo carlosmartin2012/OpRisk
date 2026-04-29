@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Upload, MoreVertical, CheckCircle, XCircle, Edit, Save, X, Download } from 'lucide-react';
-import { EBA_EVENT_TYPES, EBA_EVENT_TYPES_HIERARCHY, BUSINESS_LINES, OpEvent, Language, TRANSLATIONS, User, Department, Process } from '../types';
+import { Plus, Search, Filter, Upload, MoreVertical, CheckCircle, XCircle, Edit, Save, X, Download, Sparkles } from 'lucide-react';
+import { EBA_EVENT_TYPES, EBA_EVENT_TYPES_HIERARCHY, BUSINESS_LINES, OpEvent, Language, TRANSLATIONS, User, Department, Process, Control } from '../types';
 import ImportDrawer from './ImportDrawer';
 import { PersistenceService } from '../src/services/persistence';
 import { Trash2 } from 'lucide-react';
 import { FileParsingService, ValidationError } from '../src/services/FileParsingService';
+import { classifyEvent } from '../src/services/gemini';
 
 interface EventModuleProps {
     language: Language;
@@ -14,6 +15,7 @@ interface EventModuleProps {
     setEvents: (events: OpEvent[]) => void;
     departments: Department[];
     processes: Process[];
+    controls: Control[];
     logAction: (module: string, type: any, action: string) => void;
 }
 
@@ -25,7 +27,8 @@ const EventForm = ({
     title,
     onClose,
     departments,
-    processes
+    processes,
+    controls
 }: {
     data: OpEvent,
     setData: (d: OpEvent) => void,
@@ -33,13 +36,30 @@ const EventForm = ({
     title: string,
     onClose: () => void,
     departments: Department[],
-    processes: Process[]
+    processes: Process[],
+    controls: Control[]
 }) => {
+    const [aiBusy, setAiBusy] = useState(false);
     // Filter processes based on department if possible
     const currentDeptId = departments.find(d => d.name === data.department)?.id;
     const filteredProcesses = currentDeptId
         ? processes.filter(p => p.departmentId === currentDeptId)
         : processes;
+
+    const runAIClassify = async () => {
+        if (!data.title || !data.description) {
+            alert('Add a title and description first.');
+            return;
+        }
+        setAiBusy(true);
+        const result = await classifyEvent(data.title, data.description);
+        setAiBusy(false);
+        if (!result) {
+            alert('AI classification unavailable. Set GEMINI_API_KEY in .env.local to enable.');
+            return;
+        }
+        setData({ ...data, eventType: result.eventType, eventTypeLevel2: result.eventTypeLevel2 });
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex justify-end">
@@ -63,15 +83,55 @@ const EventForm = ({
                             placeholder="e.g., ATM Malfunction"
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Date of Discovery</label>
-                        <input
-                            type="date"
-                            required
-                            value={data.dateDiscovery}
-                            onChange={(e) => setData({ ...data, dateDiscovery: e.target.value })}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
-                        />
+                    <div className="grid grid-cols-3 gap-2">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Discovery</label>
+                            <input
+                                type="date"
+                                required
+                                value={data.dateDiscovery}
+                                onChange={(e) => setData({ ...data, dateDiscovery: e.target.value })}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-xs"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Occurrence</label>
+                            <input
+                                type="date"
+                                value={data.dateOccurrence || ''}
+                                onChange={(e) => setData({ ...data, dateOccurrence: e.target.value })}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-xs"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Accounting</label>
+                            <input
+                                type="date"
+                                value={data.dateAccounting || ''}
+                                onChange={(e) => setData({ ...data, dateAccounting: e.target.value })}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-xs"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-white/10">
+                        <label className="flex items-center text-sm cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={!!data.isNearMiss}
+                                onChange={(e) => setData({ ...data, isNearMiss: e.target.checked })}
+                                className="mr-2"
+                            />
+                            <span className="text-slate-700 dark:text-slate-300">Near-miss (no actual loss)</span>
+                        </label>
+                        <button
+                            type="button"
+                            onClick={runAIClassify}
+                            disabled={aiBusy}
+                            className="flex items-center px-3 py-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-md text-xs"
+                        >
+                            <Sparkles className="w-3 h-3 mr-1" /> {aiBusy ? 'Classifying...' : 'AI Classify'}
+                        </button>
                     </div>
 
                     {/* EBA Event Type Selector Level 1 */}
@@ -154,16 +214,49 @@ const EventForm = ({
                         </select>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Amount (€)</label>
-                        <input
-                            type="number"
-                            required
-                            value={data.amount}
-                            onChange={(e) => setData({ ...data, amount: Number(e.target.value) })}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white"
-                        />
+                    <div className="grid grid-cols-3 gap-2">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Gross Loss (€)</label>
+                            <input
+                                type="number"
+                                required
+                                value={data.amount}
+                                onChange={(e) => setData({ ...data, amount: Number(e.target.value) })}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Recovery (Direct)</label>
+                            <input
+                                type="number"
+                                value={data.recoveryDirect || 0}
+                                onChange={(e) => setData({ ...data, recoveryDirect: Number(e.target.value) })}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Recovery (Insurance)</label>
+                            <input
+                                type="number"
+                                value={data.recoveryInsurance || 0}
+                                onChange={(e) => setData({ ...data, recoveryInsurance: Number(e.target.value) })}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                            />
+                        </div>
                     </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Failed Control (optional)</label>
+                        <select
+                            value={data.controlFailedId || ''}
+                            onChange={(e) => setData({ ...data, controlFailedId: e.target.value })}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-900 dark:text-white text-sm"
+                        >
+                            <option value="">— None —</option>
+                            {controls.map(c => <option key={c.id} value={c.id}>{c.id} · {c.name}</option>)}
+                        </select>
+                    </div>
+
                     <div>
                         <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Description</label>
                         <textarea
@@ -197,7 +290,7 @@ const EventForm = ({
     );
 };
 
-const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEvents, departments, processes, logAction }) => {
+const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEvents, departments, processes, controls, logAction }) => {
     const t = TRANSLATIONS[language];
     const [activeActionId, setActiveActionId] = useState<string | null>(null);
 
@@ -644,6 +737,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
                     onClose={() => setEditingEvent(null)}
                     departments={departments}
                     processes={processes}
+                    controls={controls}
                 />
             )}
 
@@ -657,6 +751,7 @@ const EventModule: React.FC<EventModuleProps> = ({ language, user, events, setEv
                     onClose={() => { setIsCreating(false); setNewEvent(emptyEvent); }}
                     departments={departments}
                     processes={processes}
+                    controls={controls}
                 />
             )}
         </div>

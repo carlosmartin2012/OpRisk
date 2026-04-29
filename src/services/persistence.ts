@@ -1,5 +1,8 @@
 
-import { User, OpEvent, Department, Process, RiskItem, Control, AuditLog } from '../../types';
+import {
+    User, OpEvent, Department, Process, RiskItem, Control, AuditLog,
+    KRI, Issue, Scenario, AppetiteStatement, Vendor, BIA, ICTIncident, Integration
+} from '../../types';
 import { supabase } from './supabaseClient';
 
 export interface AppState {
@@ -10,20 +13,26 @@ export interface AppState {
     risks: RiskItem[];
     controls: Control[];
     auditLogs: AuditLog[];
+    kris: KRI[];
+    issues: Issue[];
+    scenarios: Scenario[];
+    appetite: AppetiteStatement[];
+    vendors: Vendor[];
+    bias: BIA[];
+    ictIncidents: ICTIncident[];
+    integrations: Integration[];
 }
 
 const STORAGE_KEY = 'oprisk_app_state';
 
-// Utility to fix common UTF-8 encoding issues (mojibake)
 const sanitizeString = (str: string) => {
     if (typeof str !== 'string') return str;
     try {
-        // If it contains patterns like Ã© (é) or Ã¡ (á), try to fix it
-        if (/[\u00C0-\u00FF][\u0080-\u00BF]/.test(str)) {
+        if (/[À-ÿ][-¿]/.test(str)) {
             return decodeURIComponent(escape(str));
         }
     } catch (e) {
-        // If it fails, return original
+        // ignore
     }
     return str;
 };
@@ -45,15 +54,24 @@ const sanitizeObject = (obj: any): any => {
     return newObj;
 };
 
-// Helper to clean objects before sending to Supabase
-const cleanForDb = (obj: any) => {
-    const cleaned = { ...obj };
-    // Map auditTrail to the quoted column name if necessary, 
-    // but here we ensure consistency with the SQL script provided
-    if (cleaned.auditTrail) {
-        cleaned.auditTrail = JSON.stringify(cleaned.auditTrail);
+// Load a Supabase table tolerantly: if it doesn't exist, return null (signals "use local")
+const loadTable = async (table: string): Promise<any[] | null> => {
+    try {
+        const { data, error } = await supabase.from(table).select('*');
+        if (error) return null;
+        return data || [];
+    } catch {
+        return null;
     }
-    return cleaned;
+};
+
+const saveTable = async (table: string, rows: any[]) => {
+    if (!rows || rows.length === 0) return;
+    try {
+        await supabase.from(table).upsert(rows);
+    } catch {
+        // table may not exist on Supabase; localStorage already has the data
+    }
 };
 
 export const PersistenceService = {
@@ -68,36 +86,53 @@ export const PersistenceService = {
 
     loadFromSupabase: async (): Promise<AppState | null> => {
         try {
+            const local = PersistenceService.load();
+
             const [
-                { data: users },
-                { data: events },
-                { data: departments },
-                { data: processes },
-                { data: risks },
-                { data: controls }
+                users, events, departments, processes, risks, controls, auditLogs,
+                kris, issues, scenarios, appetite, vendors, bias, ictIncidents, integrations
             ] = await Promise.all([
-                supabase.from('users_data').select('*'),
-                supabase.from('events').select('*'),
-                supabase.from('departments').select('*'),
-                supabase.from('processes').select('*'),
-                supabase.from('risks').select('*'),
-                supabase.from('controls').select('*')
+                loadTable('users_data'),
+                loadTable('events'),
+                loadTable('departments'),
+                loadTable('processes'),
+                loadTable('risks'),
+                loadTable('controls'),
+                loadTable('audit_logs'),
+                loadTable('kris'),
+                loadTable('issues'),
+                loadTable('scenarios'),
+                loadTable('appetite'),
+                loadTable('vendors'),
+                loadTable('bias'),
+                loadTable('ict_incidents'),
+                loadTable('integrations')
             ]);
 
+            // Core tables: must succeed (legacy behavior)
             if (!users && !events) return null;
 
-            const state = {
-                users: users || [],
-                events: (events || []).map(e => ({
+            const state: AppState = {
+                users: users || local?.users || [],
+                events: ((events || []) as any[]).map(e => ({
                     ...e,
                     auditTrail: typeof e.auditTrail === 'string' ? JSON.parse(e.auditTrail) : (e.auditTrail || [])
                 })),
-                departments: departments || [],
-                processes: processes || [],
-                risks: risks || [],
-                controls: controls || [],
-                auditLogs: (await supabase.from('audit_logs').select('*')).data || []
-            } as any;
+                departments: departments || local?.departments || [],
+                processes: processes || local?.processes || [],
+                risks: risks || local?.risks || [],
+                controls: controls || local?.controls || [],
+                auditLogs: auditLogs || local?.auditLogs || [],
+                // New tables: fall back to localStorage if not in Supabase yet
+                kris: kris !== null ? kris : (local?.kris || []),
+                issues: issues !== null ? issues : (local?.issues || []),
+                scenarios: scenarios !== null ? scenarios : (local?.scenarios || []),
+                appetite: appetite !== null ? appetite : (local?.appetite || []),
+                vendors: vendors !== null ? vendors : (local?.vendors || []),
+                bias: bias !== null ? bias : (local?.bias || []),
+                ictIncidents: ictIncidents !== null ? ictIncidents : (local?.ictIncidents || []),
+                integrations: integrations !== null ? integrations : (local?.integrations || [])
+            };
 
             return sanitizeObject(state);
         } catch (e) {
@@ -107,25 +142,29 @@ export const PersistenceService = {
     },
 
     save: async (state: AppState) => {
-        // Fix any potential encoding issues before saving
         const sanitizedState = sanitizeObject(state);
-
-        // Fallback local
         localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizedState));
 
         try {
-            // Upsert only if there's data
             await Promise.allSettled([
-                sanitizedState.users.length > 0 ? supabase.from('users_data').upsert(sanitizedState.users) : Promise.resolve(),
-                sanitizedState.events.length > 0 ? supabase.from('events').upsert(sanitizedState.events.map((e: any) => ({
+                saveTable('users_data', sanitizedState.users),
+                saveTable('events', (sanitizedState.events || []).map((e: any) => ({
                     ...e,
                     auditTrail: JSON.stringify(e.auditTrail || [])
-                }))) : Promise.resolve(),
-                sanitizedState.departments.length > 0 ? supabase.from('departments').upsert(sanitizedState.departments) : Promise.resolve(),
-                sanitizedState.processes.length > 0 ? supabase.from('processes').upsert(sanitizedState.processes) : Promise.resolve(),
-                sanitizedState.risks.length > 0 ? supabase.from('risks').upsert(sanitizedState.risks) : Promise.resolve(),
-                sanitizedState.controls.length > 0 ? supabase.from('controls').upsert(sanitizedState.controls) : Promise.resolve(),
-                sanitizedState.auditLogs.length > 0 ? supabase.from('audit_logs').upsert(sanitizedState.auditLogs) : Promise.resolve()
+                }))),
+                saveTable('departments', sanitizedState.departments),
+                saveTable('processes', sanitizedState.processes),
+                saveTable('risks', sanitizedState.risks),
+                saveTable('controls', sanitizedState.controls),
+                saveTable('audit_logs', sanitizedState.auditLogs),
+                saveTable('kris', sanitizedState.kris || []),
+                saveTable('issues', sanitizedState.issues || []),
+                saveTable('scenarios', sanitizedState.scenarios || []),
+                saveTable('appetite', sanitizedState.appetite || []),
+                saveTable('vendors', sanitizedState.vendors || []),
+                saveTable('bias', sanitizedState.bias || []),
+                saveTable('ict_incidents', sanitizedState.ictIncidents || []),
+                saveTable('integrations', sanitizedState.integrations || [])
             ]);
         } catch (e) {
             console.error('Supabase save error:', e);
@@ -146,9 +185,7 @@ export const PersistenceService = {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public' },
-                (payload) => {
-                    // Solo notificamos si el cambio no es una inserción local (opcional)
-                    // Para simplificar, disparamos la actualización
+                () => {
                     onUpdate();
                 }
             )

@@ -12,9 +12,16 @@ import {
   CheckSquare,
   Globe,
   FileClock,
-  BookOpen, // Added
-  X,        // Added
-  Download  // Added
+  BookOpen,
+  X,
+  Download,
+  Activity,
+  AlertCircle,
+  Sparkles,
+  Target,
+  Server,
+  CheckCircle,
+  Plug
 } from 'lucide-react';
 import { ViewState, User, Language, TRANSLATIONS } from '../types';
 
@@ -82,12 +89,19 @@ const Layout: React.FC<LayoutProps> = ({
           <AlquidLogo />
         </div>
 
-        <nav className="flex-1 px-4 py-4 space-y-1">
+        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
           <NavItem view={ViewState.DASHBOARD} icon={LayoutDashboard} label={t.dashboard} />
           <NavItem view={ViewState.DATA} icon={Database} label={t.data} />
           <NavItem view={ViewState.RCSA} icon={ShieldCheck} label={t.rcsa} />
           <NavItem view={ViewState.CONTROL_TESTING} icon={CheckSquare} label={t.controlTesting} />
+          <NavItem view={ViewState.KRIS} icon={Activity} label={t.kris} />
+          <NavItem view={ViewState.ISSUES} icon={AlertCircle} label={t.issues} />
+          <NavItem view={ViewState.SCENARIOS} icon={Sparkles} label={t.scenarios} />
+          <NavItem view={ViewState.APPETITE} icon={Target} label={t.appetite} />
           <NavItem view={ViewState.CAPITAL} icon={Calculator} label={t.capitalEngine} />
+          <NavItem view={ViewState.DORA} icon={Server} label={t.dora} />
+          <NavItem view={ViewState.DATA_QUALITY} icon={CheckCircle} label={t.dataQuality} />
+          <NavItem view={ViewState.INTEGRATIONS} icon={Plug} label={t.integrations} />
 
           <div className="pt-4 border-t border-slate-200 dark:border-white/10 mt-4">
             <NavItem view={ViewState.AUDIT_LOGS} icon={FileClock} label={t.auditLogs} />
@@ -302,12 +316,19 @@ const Layout: React.FC<LayoutProps> = ({
               <h2 className="text-xl font-bold text-white">Menu</h2>
               <button onClick={() => setMobileMenuOpen(false)} className="text-white"><LogOut className="w-6 h-6 rotate-180" /></button>
             </div>
-            <nav className="space-y-4">
+            <nav className="space-y-2 overflow-y-auto">
               <NavItem view={ViewState.DASHBOARD} icon={LayoutDashboard} label={t.dashboard} />
               <NavItem view={ViewState.DATA} icon={Database} label={t.data} />
               <NavItem view={ViewState.RCSA} icon={ShieldCheck} label={t.rcsa} />
               <NavItem view={ViewState.CONTROL_TESTING} icon={CheckSquare} label={t.controlTesting} />
+              <NavItem view={ViewState.KRIS} icon={Activity} label={t.kris} />
+              <NavItem view={ViewState.ISSUES} icon={AlertCircle} label={t.issues} />
+              <NavItem view={ViewState.SCENARIOS} icon={Sparkles} label={t.scenarios} />
+              <NavItem view={ViewState.APPETITE} icon={Target} label={t.appetite} />
               <NavItem view={ViewState.CAPITAL} icon={Calculator} label={t.capitalEngine} />
+              <NavItem view={ViewState.DORA} icon={Server} label={t.dora} />
+              <NavItem view={ViewState.DATA_QUALITY} icon={CheckCircle} label={t.dataQuality} />
+              <NavItem view={ViewState.INTEGRATIONS} icon={Plug} label={t.integrations} />
               <NavItem view={ViewState.AUDIT_LOGS} icon={FileClock} label={t.auditLogs} />
             </nav>
           </div>

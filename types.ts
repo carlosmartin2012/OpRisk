@@ -5,7 +5,14 @@ export enum ViewState {
   DATA = 'DATA',
   RCSA = 'RCSA',
   CONTROL_TESTING = 'CONTROL_TESTING',
+  KRIS = 'KRIS',
+  ISSUES = 'ISSUES',
+  SCENARIOS = 'SCENARIOS',
+  APPETITE = 'APPETITE',
   CAPITAL = 'CAPITAL',
+  DORA = 'DORA',
+  DATA_QUALITY = 'DATA_QUALITY',
+  INTEGRATIONS = 'INTEGRATIONS',
   AUDIT_LOGS = 'AUDIT_LOGS',
   USERS = 'USERS'
 }
@@ -36,17 +43,22 @@ export interface AuditLog {
 export interface OpEvent {
   id: string;
   dateDiscovery: string;
+  dateOccurrence?: string;
+  dateAccounting?: string;
   title: string;
   description: string;
   employeeEmail: string;
-  department: string; // Added field
+  department: string;
   amount: number;
   currency: string;
-  eventType: string; // EBA Level 1
-  eventTypeLevel2: string; // EBA Level 2
+  recoveryDirect?: number;
+  recoveryInsurance?: number;
+  isNearMiss?: boolean;
+  controlFailedId?: string;
+  eventType: string;
+  eventTypeLevel2: string;
   businessLine: string;
-  processId: string; // Added field
-
+  processId: string;
   status: 'Draft' | 'Pending Validation' | 'Approved' | 'Rejected';
   auditTrail: Partial<AuditLog>[];
 }
@@ -67,37 +79,139 @@ export interface Process {
 export interface RiskItem {
   id: string;
   processId: string;
-  name: string; // Added Name
+  name: string;
   description: string;
-  owner?: string; // Added Owner
-  inherentProb: number; // 1-5
-  inherentImpact: number; // 1-5
-  residualProb: number; // 1-5
-  residualImpact: number; // 1-5
-  controlIds: string[]; // Links to controls
+  owner?: string;
+  inherentProb: number;
+  inherentImpact: number;
+  residualProb: number;
+  residualImpact: number;
+  controlIds: string[];
+  approvalStatus?: 'Draft' | 'Pending Approval' | 'Approved' | 'Rejected';
+  approvedBy?: string;
+  approvedDate?: string;
 }
 
 export interface Control {
   id: string;
   riskId: string;
-  name: string; // Added Name
+  name: string;
   owner: string;
   description: string;
   type: 'Preventive' | 'Detective';
-  frequency: 'Daily' | 'Monthly' | 'Quarterly' | 'Annually'; // Execution Frequency - Expanded
-  testingFrequency: 'Monthly' | 'Quarterly' | 'Annually'; // New field: Testing Frequency
+  frequency: 'Daily' | 'Monthly' | 'Quarterly' | 'Annually';
+  testingFrequency: 'Monthly' | 'Quarterly' | 'Annually';
   status: 'Pending' | 'Tested' | 'Validated' | 'Non Validated';
   evidence?: string;
   lastTested?: string;
 }
 
+export interface KRI {
+  id: string;
+  name: string;
+  description: string;
+  riskId?: string;
+  owner: string;
+  unit: '%' | '€' | 'count' | 'days' | 'hours';
+  currentValue: number;
+  greenMax: number;
+  amberMax: number;
+  frequency: 'Daily' | 'Weekly' | 'Monthly' | 'Quarterly';
+  trend: 'up' | 'down' | 'flat';
+  lastUpdated: string;
+}
+
+export interface Issue {
+  id: string;
+  title: string;
+  description: string;
+  source: 'Event' | 'Control' | 'Audit' | 'KRI' | 'Manual';
+  sourceId?: string;
+  severity: 'Low' | 'Medium' | 'High' | 'Critical';
+  owner: string;
+  createdDate: string;
+  dueDate: string;
+  status: 'Open' | 'In Progress' | 'Closed' | 'Overdue';
+}
+
+export interface Scenario {
+  id: string;
+  name: string;
+  description: string;
+  eventType: string;
+  businessLine: string;
+  frequencyPerYear: number;
+  severityMin: number;
+  severityMode: number;
+  severityMax: number;
+  owner: string;
+}
+
+export interface AppetiteStatement {
+  id: string;
+  scope: string;
+  metric: string;
+  threshold: number;
+  unit: '€' | '%' | 'count';
+  period: 'Monthly' | 'Quarterly' | 'Annual';
+  actual: number;
+  status: 'Within' | 'Watch' | 'Breach';
+}
+
+export interface Vendor {
+  id: string;
+  name: string;
+  service: string;
+  criticality: 'Critical' | 'Important' | 'Standard';
+  country: string;
+  contractEnd: string;
+  exitPlan: 'Yes' | 'No' | 'In Progress';
+  ictThirdParty: boolean;
+}
+
+export interface BIA {
+  id: string;
+  processId: string;
+  rtoHours: number;
+  rpoHours: number;
+  mtpdHours: number;
+  criticality: 'Critical' | 'High' | 'Medium' | 'Low';
+  reviewedDate: string;
+}
+
+export interface ICTIncident {
+  id: string;
+  title: string;
+  detectedDate: string;
+  classification: 'Major' | 'Significant' | 'Operational';
+  durationHours: number;
+  clientsAffected: number;
+  servicesAffected: string;
+  rootCause: string;
+  status: 'Open' | 'Resolved' | 'Reported to Authority';
+}
+
+export interface Integration {
+  id: string;
+  name: string;
+  type: 'External Loss Data' | 'Ticketing' | 'GRC' | 'ERP' | 'SIEM';
+  description: string;
+  status: 'Disconnected' | 'Connected' | 'Error';
+  lastSync?: string;
+  endpoint?: string;
+}
+
 export interface FinancialData {
   interestIncome: number;
   interestExpense: number;
-  serviceIncome: number;
-  serviceExpense: number;
-  financialIncome: number;
-  avgAnnualLoss: number; // For ILM
+  interestEarningAssets: number;
+  serviceIncomeOther: number;
+  serviceExpenseOther: number;
+  feeIncome: number;
+  feeExpense: number;
+  tradingPnL: number;
+  bankingPnL: number;
+  avgAnnualLoss: number;
 }
 
 export const EBA_EVENT_TYPES_HIERARCHY: Record<string, string[]> = {
@@ -157,6 +271,13 @@ export const TRANSLATIONS = {
     rcsa: "RCSA",
     controlTesting: "Control Testing",
     capitalEngine: "Capital Engine",
+    kris: "KRIs",
+    issues: "Issues & Actions",
+    scenarios: "Scenarios",
+    appetite: "Risk Appetite",
+    dora: "DORA / Resilience",
+    dataQuality: "Data Quality",
+    integrations: "Integrations",
     auditLogs: "Audit Logs",
     userManagement: "User Management",
     logout: "Sign Out",
@@ -191,6 +312,13 @@ export const TRANSLATIONS = {
     rcsa: "RCSA",
     controlTesting: "Test de Control",
     capitalEngine: "Motor de Capital",
+    kris: "Indicadores (KRIs)",
+    issues: "Hallazgos y Acciones",
+    scenarios: "Escenarios",
+    appetite: "Apetito al Riesgo",
+    dora: "DORA / Resiliencia",
+    dataQuality: "Calidad de Datos",
+    integrations: "Integraciones",
     auditLogs: "Logs de Auditoría",
     userManagement: "Gestión de Usuarios",
     logout: "Cerrar Sesión",
