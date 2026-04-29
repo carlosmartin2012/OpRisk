@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plug, CheckCircle, XCircle, RefreshCw, Database, Ticket, Shield, Building, Zap } from 'lucide-react';
+import { Plug, CheckCircle, XCircle, RefreshCw, Database } from 'lucide-react';
 import { Integration, Language } from '../types';
 
 interface IntegrationsProps {
@@ -14,21 +14,9 @@ const DEFAULTS: Integration[] = [
     { id: 'INT-ORX', name: 'ORX External Loss Data', type: 'External Loss Data', description: 'Operational Riskdata eXchange — anonymised consortium loss data for benchmarking', status: 'Disconnected' },
     { id: 'INT-ORIC', name: 'ORIC International', type: 'External Loss Data', description: 'Insurance industry external loss database', status: 'Disconnected' },
     { id: 'INT-SAS', name: 'SAS OpRisk Global Data', type: 'External Loss Data', description: 'Public domain external loss data from SAS', status: 'Disconnected' },
-    { id: 'INT-JIRA', name: 'Jira', type: 'Ticketing', description: 'Sync issues and remediation tickets', status: 'Disconnected' },
-    { id: 'INT-SNOW', name: 'ServiceNow', type: 'Ticketing', description: 'GRC, ITSM and IRM modules', status: 'Disconnected' },
-    { id: 'INT-SAP', name: 'SAP', type: 'ERP', description: 'Pull G/L data for Business Indicator computation', status: 'Disconnected' },
-    { id: 'INT-WD', name: 'Workday', type: 'ERP', description: 'HR data for employee fraud / boundary events', status: 'Disconnected' },
-    { id: 'INT-SPL', name: 'Splunk', type: 'SIEM', description: 'Security & ICT incident telemetry', status: 'Disconnected' },
-    { id: 'INT-GRC', name: 'Archer GRC', type: 'GRC', description: 'Push controls / RCSA into Archer', status: 'Disconnected' }
+    { id: 'INT-FIRST', name: 'IBM Algo FIRST', type: 'External Loss Data', description: 'Curated public domain loss event database', status: 'Disconnected' },
+    { id: 'INT-RGE', name: 'Risk Global Exchange', type: 'External Loss Data', description: 'Industry consortium for cyber and ICT loss data', status: 'Disconnected' }
 ];
-
-const typeIcon = (t: Integration['type']) => {
-    if (t === 'External Loss Data') return Database;
-    if (t === 'Ticketing') return Ticket;
-    if (t === 'GRC') return Shield;
-    if (t === 'ERP') return Building;
-    return Zap;
-};
 
 const Integrations: React.FC<IntegrationsProps> = ({ integrations, setIntegrations, logAction }) => {
     const [pending, setPending] = useState<string | null>(null);
@@ -61,13 +49,13 @@ const Integrations: React.FC<IntegrationsProps> = ({ integrations, setIntegratio
         logAction('Integrations', 'Execution', `${next === 'Connected' ? 'Connected to' : 'Disconnected from'} ${item.name}`);
     };
 
-    const grouped = ['External Loss Data', 'Ticketing', 'GRC', 'ERP', 'SIEM'] as const;
+    const grouped = ['External Loss Data'] as const;
 
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Integrations</h2>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">Connect to external loss data and downstream systems</p>
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">External Loss Data</h2>
+                <p className="text-slate-500 dark:text-slate-400 mt-1">Connectors to external operational loss databases for benchmarking and ICAAP scenario calibration</p>
             </div>
 
             <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-500/20 rounded-xl p-4 flex items-start">
@@ -88,7 +76,7 @@ const Integrations: React.FC<IntegrationsProps> = ({ integrations, setIntegratio
                         <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase mb-3">{g}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {items.map(i => {
-                                const Icon = typeIcon(i.type);
+                                const Icon = Database;
                                 const connected = i.status === 'Connected';
                                 const isPending = pending === i.id;
                                 return (

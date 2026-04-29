@@ -21,53 +21,20 @@ import {
     KRI, Issue, Scenario, AppetiteStatement, Vendor, BIA, ICTIncident, Integration
 } from './types';
 import { PersistenceService, AppState } from './src/services/persistence';
+import {
+    SEED_USERS, SEED_DEPARTMENTS, SEED_PROCESSES, SEED_RISKS, SEED_CONTROLS, SEED_EVENTS,
+    SEED_KRIS, SEED_ISSUES, SEED_SCENARIOS, SEED_APPETITE, SEED_VENDORS, SEED_BIA, SEED_ICT_INCIDENTS
+} from './src/data/seeds';
 
 const SYNC_COOLDOWN = 2000;
 
-const DEFAULT_USERS: User[] = [
-    { id: 'U4', email: 'carlos.martin@nfq.es', name: 'Carlos Martin', role: 'Administrator', department: 'Management', lastLogin: '2023-10-26 11:00', status: 'Active' },
-];
-
-const DEFAULT_DEPARTMENTS: Department[] = [
-    { id: 'DEP-01', name: 'Retail Banking' },
-    { id: 'DEP-02', name: 'Global Markets' },
-    { id: 'DEP-03', name: 'Information Tech' },
-];
-
-const DEFAULT_PROCESSES: Process[] = [
-    { id: 'PROC-RB-01', departmentId: 'DEP-01', name: 'Card Issuance', owner: 'John Doe' },
-    { id: 'PROC-RB-02', departmentId: 'DEP-01', name: 'Mortgage Underwriting', owner: 'Jane Smith' },
-    { id: 'PROC-GM-01', departmentId: 'DEP-02', name: 'FX Trading', owner: 'Mike Ross' },
-    { id: 'PROC-IT-01', departmentId: 'DEP-03', name: 'Access Management', owner: 'Alice Tech' },
-];
-
-const DEFAULT_RISKS: RiskItem[] = [
-    { id: 'R-001', processId: 'PROC-RB-01', name: 'Unauthorized issuance', description: 'Unauthorized issuance of cards', inherentProb: 4, inherentImpact: 5, residualProb: 2, residualImpact: 3, controlIds: ['CTRL-01', 'CTRL-02'] },
-    { id: 'R-002', processId: 'PROC-RB-01', name: 'Data Leakage', description: 'Customer data leakage', inherentProb: 5, inherentImpact: 5, residualProb: 3, residualImpact: 4, controlIds: ['CTRL-05'] },
-    { id: 'R-003', processId: 'PROC-GM-01', name: 'Settlement Fail', description: 'Trade settlement failure', inherentProb: 3, inherentImpact: 4, residualProb: 2, residualImpact: 2, controlIds: [] },
-    { id: 'R-004', processId: 'PROC-IT-01', name: 'Privilege Escalation', description: ' unauthorized admin access', inherentProb: 5, inherentImpact: 4, residualProb: 4, residualImpact: 2, controlIds: [] }
-];
-
-const DEFAULT_CONTROLS: Control[] = [
-    { id: 'CTRL-01', riskId: 'R-001', name: 'Dual Auth', description: 'Dual authentication', type: 'Preventive', frequency: 'Daily', testingFrequency: 'Monthly', status: 'Tested', owner: 'Sec Team' },
-    { id: 'CTRL-02', riskId: 'R-001', name: 'Reconciliation', description: 'Daily reconcilation', type: 'Detective', frequency: 'Daily', testingFrequency: 'Monthly', status: 'Validated', owner: 'Ops Team' },
-    { id: 'CTRL-05', riskId: 'R-002', name: 'Vendor Check', description: 'Vendor check', type: 'Preventive', frequency: 'Quarterly', testingFrequency: 'Annually', status: 'Validated', owner: 'Risk Team' }
-];
-
-const DEFAULT_EVENTS: OpEvent[] = [
-    {
-        id: "EVT-2023-001", dateDiscovery: "2023-10-15", title: "ATM Skimming North", description: "Card skimming devices found at 3 ATMs in North region.", amount: 45000, currency: "EUR",
-        eventType: "External Fraud", eventTypeLevel2: "Theft and Fraud", businessLine: "Retail Banking",
-        processId: "PROC-RB-01", employeeEmail: "branch.manager@nfq.es", department: "Retail Network North", status: "Approved",
-        auditTrail: [{ date: "2023-10-16 10:00", user: "system", action: "Created via CSV" }]
-    },
-    {
-        id: "EVT-2023-002", dateDiscovery: "2023-10-18", title: "Settlement Error", description: "Manual error in trade settlement instructions.", amount: 12500, currency: "EUR",
-        eventType: "Execution, Delivery & Process Management", eventTypeLevel2: "Transaction Capture, Execution & Maintenance", businessLine: "Trading & Sales",
-        processId: "PROC-GM-01", employeeEmail: "trader.joe@nfq.es", department: "Global Markets", status: "Pending Validation",
-        auditTrail: [{ date: "2023-10-18 14:30", user: "system", action: "Created via CSV" }]
-    }
-];
+// If a Supabase load returns fewer items than the seed (or none),
+// keep the seed so users see realistic data instead of stale or empty tables.
+const seedIfSparse = <T,>(loaded: T[] | undefined, seed: T[], minSize?: number): T[] => {
+    const min = minSize ?? Math.min(seed.length, 3);
+    if (!loaded || loaded.length < min) return seed;
+    return loaded;
+};
 
 function App() {
     const [user, setUser] = useState<User | null>(null);
@@ -78,23 +45,23 @@ function App() {
     const isRemoteUpdate = React.useRef(false);
     const lastLocalSave = React.useRef(0);
 
-    // Core state
-    const [users, setUsers] = useState<User[]>(DEFAULT_USERS);
-    const [departments, setDepartments] = useState<Department[]>(DEFAULT_DEPARTMENTS);
-    const [processes, setProcesses] = useState<Process[]>(DEFAULT_PROCESSES);
-    const [risks, setRisks] = useState<RiskItem[]>(DEFAULT_RISKS);
-    const [controls, setControls] = useState<Control[]>(DEFAULT_CONTROLS);
-    const [events, setEvents] = useState<OpEvent[]>(DEFAULT_EVENTS);
+    // Core state — initialised with realistic banking seeds
+    const [users, setUsers] = useState<User[]>(SEED_USERS);
+    const [departments, setDepartments] = useState<Department[]>(SEED_DEPARTMENTS);
+    const [processes, setProcesses] = useState<Process[]>(SEED_PROCESSES);
+    const [risks, setRisks] = useState<RiskItem[]>(SEED_RISKS);
+    const [controls, setControls] = useState<Control[]>(SEED_CONTROLS);
+    const [events, setEvents] = useState<OpEvent[]>(SEED_EVENTS);
     const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
-    // New state (P0 / P1 / P2 / P3)
-    const [kris, setKris] = useState<KRI[]>([]);
-    const [issues, setIssues] = useState<Issue[]>([]);
-    const [scenarios, setScenarios] = useState<Scenario[]>([]);
-    const [appetite, setAppetite] = useState<AppetiteStatement[]>([]);
-    const [vendors, setVendors] = useState<Vendor[]>([]);
-    const [bias, setBias] = useState<BIA[]>([]);
-    const [ictIncidents, setIctIncidents] = useState<ICTIncident[]>([]);
+    // Phase modules — seeded with examples
+    const [kris, setKris] = useState<KRI[]>(SEED_KRIS);
+    const [issues, setIssues] = useState<Issue[]>(SEED_ISSUES);
+    const [scenarios, setScenarios] = useState<Scenario[]>(SEED_SCENARIOS);
+    const [appetite, setAppetite] = useState<AppetiteStatement[]>(SEED_APPETITE);
+    const [vendors, setVendors] = useState<Vendor[]>(SEED_VENDORS);
+    const [bias, setBias] = useState<BIA[]>(SEED_BIA);
+    const [ictIncidents, setIctIncidents] = useState<ICTIncident[]>(SEED_ICT_INCIDENTS);
     const [integrations, setIntegrations] = useState<Integration[]>([]);
 
     const logAction = (module: string, type: AuditLog['type'], action: string) => {
@@ -109,7 +76,7 @@ function App() {
         setAuditLogs(prev => [newLog, ...prev]);
     };
 
-    // Sync with Supabase
+    // Sync with Supabase — falls back to seeds when remote data is empty or sparse
     useEffect(() => {
         const fetchInitial = async (isManualSync = false) => {
             if (!isManualSync && Date.now() - lastLocalSave.current < SYNC_COOLDOWN) {
@@ -118,20 +85,20 @@ function App() {
             const data = await PersistenceService.loadFromSupabase();
             if (data) {
                 isRemoteUpdate.current = true;
-                setUsers(data.users);
-                setDepartments(data.departments);
-                setProcesses(data.processes);
-                setRisks(data.risks);
-                setControls(data.controls);
-                setEvents(data.events);
+                setUsers(seedIfSparse(data.users, SEED_USERS));
+                setDepartments(seedIfSparse(data.departments, SEED_DEPARTMENTS, 5));
+                setProcesses(seedIfSparse(data.processes, SEED_PROCESSES, 8));
+                setRisks(seedIfSparse(data.risks, SEED_RISKS, 10));
+                setControls(seedIfSparse(data.controls, SEED_CONTROLS, 15));
+                setEvents(seedIfSparse(data.events, SEED_EVENTS, 5));
                 setAuditLogs(data.auditLogs || []);
-                setKris(data.kris || []);
-                setIssues(data.issues || []);
-                setScenarios(data.scenarios || []);
-                setAppetite(data.appetite || []);
-                setVendors(data.vendors || []);
-                setBias(data.bias || []);
-                setIctIncidents(data.ictIncidents || []);
+                setKris(seedIfSparse(data.kris, SEED_KRIS, 1));
+                setIssues(seedIfSparse(data.issues, SEED_ISSUES, 1));
+                setScenarios(seedIfSparse(data.scenarios, SEED_SCENARIOS, 1));
+                setAppetite(seedIfSparse(data.appetite, SEED_APPETITE, 1));
+                setVendors(seedIfSparse(data.vendors, SEED_VENDORS, 1));
+                setBias(seedIfSparse(data.bias, SEED_BIA, 1));
+                setIctIncidents(seedIfSparse(data.ictIncidents, SEED_ICT_INCIDENTS, 1));
                 setIntegrations(data.integrations || []);
             }
         };
@@ -164,7 +131,6 @@ function App() {
         setCurrentView(ViewState.LOGIN);
     };
 
-    // Persist on any change
     useEffect(() => {
         if (isRemoteUpdate.current) {
             isRemoteUpdate.current = false;
