@@ -91,13 +91,13 @@ const Layout: React.FC<LayoutProps> = ({
 
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
           <NavItem view={ViewState.DASHBOARD} icon={LayoutDashboard} label={t.dashboard} />
-          <NavItem view={ViewState.DATA} icon={Database} label={t.data} />
           <NavItem view={ViewState.RCSA} icon={ShieldCheck} label={t.rcsa} />
           <NavItem view={ViewState.CONTROL_TESTING} icon={CheckSquare} label={t.controlTesting} />
+          <NavItem view={ViewState.DATA} icon={Database} label={t.data} />
           <NavItem view={ViewState.KRIS} icon={Activity} label={t.kris} />
+          <NavItem view={ViewState.APPETITE} icon={Target} label={t.appetite} />
           <NavItem view={ViewState.ISSUES} icon={AlertCircle} label={t.issues} />
           <NavItem view={ViewState.SCENARIOS} icon={Sparkles} label={t.scenarios} />
-          <NavItem view={ViewState.APPETITE} icon={Target} label={t.appetite} />
           <NavItem view={ViewState.CAPITAL} icon={Calculator} label={t.capitalEngine} />
           <NavItem view={ViewState.DORA} icon={Server} label={t.dora} />
           <NavItem view={ViewState.DATA_QUALITY} icon={CheckCircle} label={t.dataQuality} />
@@ -170,78 +170,173 @@ const Layout: React.FC<LayoutProps> = ({
             </div>
 
             <div className="prose dark:prose-invert max-w-none space-y-4 pb-10">
-              <div className="p-4 bg-orange-50 dark:bg-brand-brown/10 rounded-xl border border-orange-100 dark:border-brand-brown/20 group">
+              <div className="p-4 bg-orange-50 dark:bg-brand-brown/10 rounded-xl border border-orange-100 dark:border-brand-brown/20">
                 <h3 className="text-lg font-semibold text-brand-brown dark:text-orange-400 mb-2">NFQ OpRisk Platform</h3>
                 <p className="text-sm text-slate-600 dark:text-slate-300">
-                  Welcome to the multi-user operational risk management ecosystem. This version includes full Supabase cloud integration and real-time data streaming.
+                  End-to-end operational risk management aligned to Basel III SMA, EBA event taxonomy and DORA.
+                  All changes sync in real time across users via Supabase.
                 </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/10">
+                <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2">Suggested workflow</h4>
+                <ol className="list-decimal pl-5 text-xs space-y-1 text-slate-600 dark:text-slate-300">
+                  <li><strong>Define</strong> the universe in <strong>RCSA</strong> (Departments → Processes → Risks → Controls)</li>
+                  <li><strong>Test</strong> the controls in <strong>Control Testing</strong></li>
+                  <li><strong>Capture</strong> losses in <strong>Events</strong> and forward-looking metrics in <strong>KRIs</strong></li>
+                  <li><strong>Govern</strong> with <strong>Risk Appetite</strong> thresholds and remediate via <strong>Issues & Actions</strong></li>
+                  <li><strong>Look ahead</strong> with <strong>Scenarios</strong> and <strong>Capital Engine</strong></li>
+                  <li><strong>Resilience & data</strong>: <strong>DORA</strong>, <strong>Data Quality</strong>, <strong>External Loss Data</strong></li>
+                </ol>
               </div>
 
               <div className="space-y-6 mt-6">
                 <section>
                   <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
-                    <Globe className="w-5 h-5 mr-2 text-brand-brown" /> Real-time Synchronization
+                    <ShieldCheck className="w-5 h-5 mr-2 text-brand-brown" /> 1. RCSA — Risk &amp; Control Self-Assessment
                   </h4>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    The platform now operates in the cloud. All actions (creating, editing, deleting) are reflected <strong>instantly</strong> for all connected users without refreshing.
-                  </p>
-                </section>
-
-                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
-                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
-                    <Database className="w-5 h-5 mr-2 text-brand-brown" /> Data Module (Events)
-                  </h4>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    The central repository for internal operational risk loss events.
-                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Foundation of the framework. Build the universe and assess inherent vs residual risk.</p>
                   <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
-                    <li><strong>Create Event:</strong> Click "+ New Event" to report a loss. Fill in mandatory fields like Date, Amount, EBA Event Type (Level 1 & 2), and Business Line.</li>
-                    <li><strong>Import:</strong> Use the "Upload CSV" button to bulk import events via drag-and-drop. Supported formats: .csv, .xls.</li>
-                    <li><strong>Validation:</strong> 'OpRisk' and 'Administrator' users can review pending events and Approve or Reject them.</li>
-                    <li><strong>Editing:</strong> 1st Line users can edit their own events while they are in 'Pending' status.</li>
+                    <li><strong>Hierarchy:</strong> Departments → Processes → Risks → Controls</li>
+                    <li><strong>Scoring:</strong> 5×5 matrix for inherent and residual probability/impact</li>
+                    <li><strong>Controls:</strong> Preventive vs detective; linked to risks; execution and testing frequencies</li>
+                    <li><strong>Bulk load</strong> via CSV; visualise interconnections in <em>Map View</em></li>
                   </ul>
                 </section>
 
                 <section className="border-t border-slate-200 dark:border-white/10 pt-4">
                   <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
-                    <ShieldCheck className="w-5 h-5 mr-2 text-brand-brown" /> RCSA (Self-Assessment)
+                    <CheckSquare className="w-5 h-5 mr-2 text-brand-brown" /> 2. Control Testing
                   </h4>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Manage the organizational hierarchy and assess risks and controls.
-                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Plan, execute and document tests on each control. Outcomes feed back into the residual risk view.</p>
                   <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
-                    <li><strong>Hierarchy Tree:</strong> Navigate through Departments {'>'} Processes {'>'} Risks.</li>
-                    <li><strong>Create Items:</strong> Use the "+" button to add Departments, Processes with Owners, Risks with Impact/Prob Matrices, or Controls with Frequency.</li>
-                    <li><strong>Manage:</strong> Delete items using the trash icon (cascading effects apply). Import bulk data via CSV.</li>
-                    <li><strong>Neural Map:</strong> Switch to 'Map View' to visualize the interconnections between risks and processes.</li>
+                    <li><strong>Outcome:</strong> Validated / Tested / Non Validated / Pending</li>
+                    <li><strong>Filter</strong> by department, owner, linked risk; click headers to sort</li>
+                    <li><strong>Evidence</strong> upload supported per test</li>
                   </ul>
                 </section>
 
                 <section className="border-t border-slate-200 dark:border-white/10 pt-4">
                   <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
-                    <CheckSquare className="w-5 h-5 mr-2 text-brand-brown" /> Control Testing
+                    <Database className="w-5 h-5 mr-2 text-brand-brown" /> 3. Events — internal loss data
                   </h4>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Execute and verify the effectiveness of controls linked to risks.
-                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Central ledger of operational loss events aligned to the EBA Level 1 / Level 2 taxonomy.</p>
                   <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
-                    <li><strong>Test Execution:</strong> Select a control and perform a test (e.g., "Sample check of 5 items").</li>
-                    <li><strong>Sorting & Filtering:</strong> Use the filter bar to find controls by Department, Risk, or Owner. Click headers to sort.</li>
-                    <li><strong>Outcome:</strong> Mark results as "Effective", "Ineffective", or "Not Applicable".</li>
+                    <li><strong>Three dates</strong> (Basel): occurrence, discovery, accounting impact</li>
+                    <li><strong>Gross loss</strong> + recoveries (direct + insurance) → net loss</li>
+                    <li><strong>Near-miss</strong> flag and link to the <strong>control that failed</strong></li>
+                    <li><strong>AI Classify</strong>: suggests EBA L1/L2 from the description (Gemini)</li>
+                    <li><strong>4-eyes:</strong> First Line creates → OpRisk validates / rejects</li>
+                    <li><strong>CSV import</strong> with template; semicolon-separated</li>
                   </ul>
                 </section>
 
                 <section className="border-t border-slate-200 dark:border-white/10 pt-4">
                   <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
-                    <Calculator className="w-5 h-5 mr-2 text-brand-brown" /> Capital Engine
+                    <Activity className="w-5 h-5 mr-2 text-brand-brown" /> 4. KRIs — Key Risk Indicators
                   </h4>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Standardized Measurement Approach (SMA) calculator for regulatory capital.
-                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Forward-looking metrics with green / amber / red thresholds and trend.</p>
                   <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
-                    <li><strong>BI Component:</strong> Inputs for Business Indicator (Interest, Service, Financial components).</li>
-                    <li><strong>ILM Component:</strong> Internal Loss Multiplier calculation based on historical losses (10-year window).</li>
-                    <li><strong>Output:</strong> Real-time calculation of Baseline Capital Requirements.</li>
+                    <li>Per indicator: current value, owner, frequency, RAG status</li>
+                    <li>Linked to a risk in the RCSA universe</li>
+                    <li>Threshold breaches feed naturally into <strong>Issues &amp; Actions</strong></li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <Target className="w-5 h-5 mr-2 text-brand-brown" /> 5. Risk Appetite
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Quantitative tolerance statements at firm, business line or event-type level.</p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li>Threshold + period (Monthly / Quarterly / Annual)</li>
+                    <li><strong>Actuals auto-computed</strong> for "Gross Loss" metric from approved events</li>
+                    <li>RAG: Within / Watch (≥80% of limit) / Breach (≥100%)</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <AlertCircle className="w-5 h-5 mr-2 text-brand-brown" /> 6. Issues &amp; Actions
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Hub for remediation tracking. An issue can come from an event, a control, an audit finding or a KRI breach.</p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li>Severity (Low → Critical), owner, due date</li>
+                    <li>Auto-flagged as <strong>Overdue</strong> when past due date</li>
+                    <li>Filter by status; export to CSV</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <Sparkles className="w-5 h-5 mr-2 text-brand-brown" /> 7. Scenarios
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Library of forward-looking ICAAP scenarios for tail-risk analysis.</p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li>Triangular severity (min/mode/max) × Poisson frequency</li>
+                    <li><strong>Run Monte Carlo</strong> (5,000 iterations) → mean, VaR 95%, VaR 99%, max</li>
+                    <li>Useful for ICAAP capital and what-if</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <Calculator className="w-5 h-5 mr-2 text-brand-brown" /> 8. Capital Engine — Basel III SMA
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Standardised Measurement Approach calculator for regulatory operational risk capital.</p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li>Full BI = ILDC + SC + FC, with 2.25% IEA cap on the interest component</li>
+                    <li>Three-bucket BIC: 12% (≤€1bn), 15% (€1–30bn), 18% (&gt;€30bn)</li>
+                    <li>ILM derived from 10-year average loss; option to force ILM = 1 (national discretion)</li>
+                    <li><strong>Stress slider</strong> (-30% to +50%) on BI for what-if</li>
+                    <li>Average annual loss <strong>auto-derived</strong> from approved events</li>
+                    <li>Export breakdown to CSV; print to PDF</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <Server className="w-5 h-5 mr-2 text-brand-brown" /> 9. DORA / Operational Resilience
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Operational resilience module aligned to the Digital Operational Resilience Act.</p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li><strong>Third Parties</strong> register with criticality and ICT 3rd-party flag (DORA art. 28)</li>
+                    <li><strong>BIA</strong> per process: RTO / RPO / MTPD with criticality rating</li>
+                    <li><strong>ICT Incidents</strong>: Major / Significant / Operational classification (DORA art. 18)</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <CheckCircle className="w-5 h-5 mr-2 text-brand-brown" /> 10. Data Quality
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Live diagnostics on the integrity of your risk data.</p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li>Event mandatory fields, event → process integrity</li>
+                    <li>Risks without controls, controls pending testing</li>
+                    <li>Possible duplicate events, processes without department</li>
+                    <li>Overall <strong>DQ score</strong> rolled up from all checks</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <Plug className="w-5 h-5 mr-2 text-brand-brown" /> 11. External Loss Data
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Sandbox connectors to industry external loss databases for benchmarking and ICAAP scenario calibration.</p>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li>ORX, ORIC, SAS Global Data, IBM Algo FIRST, Risk Global Exchange</li>
+                    <li><strong>Connect / Disconnect</strong> handshake (mock; real OAuth / API key flows configured per tenant)</li>
+                  </ul>
+                </section>
+
+                <section className="border-t border-slate-200 dark:border-white/10 pt-4">
+                  <h4 className="flex items-center text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    <Globe className="w-5 h-5 mr-2 text-brand-brown" /> Real-time sync &amp; permissions
+                  </h4>
+                  <ul className="list-disc pl-5 text-sm space-y-1 text-slate-600 dark:text-slate-300 mt-2">
+                    <li>All changes sync instantly across users (Supabase realtime)</li>
+                    <li><strong>Roles:</strong> Administrator (full), OpRisk (validation + capital), First Line (capture own data), Auditor (read-only)</li>
                   </ul>
                 </section>
 
@@ -250,21 +345,21 @@ const Layout: React.FC<LayoutProps> = ({
                     <Download className="w-5 h-5 mr-2 text-brand-brown" /> CSV Import Formats
                   </h4>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Use semicolon (;) as separator. If validation fails, an error report will be downloaded automatically.
+                    Semicolon (;) separator. Failed rows produce an automatic error report download.
                   </p>
-                  <div className="mt-4 space-y-4">
+                  <div className="mt-4 space-y-3">
                     <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10">
-                      <p className="text-xs font-bold text-brand-brown mb-1">Events Import Columns:</p>
+                      <p className="text-xs font-bold text-brand-brown mb-1">Events:</p>
                       <code className="text-[10px] block break-all text-slate-500">
                         Date;Title;Amount;EventType;Level2;BusinessLine;Dept;ProcessID;Description;Email
                       </code>
                     </div>
                     <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10">
-                      <p className="text-xs font-bold text-brand-brown mb-1">RCSA Import Columns (Dynamic):</p>
+                      <p className="text-xs font-bold text-brand-brown mb-1">RCSA (dynamic):</p>
                       <code className="text-[10px] block break-all text-slate-500">
                         Type;ID;Name;ParentID;Owner;Description;InherentProb;InherentImpact;ResidualProb;ResidualImpact;ControlType;Frequency;TestFrequency
                       </code>
-                      <p className="text-[10px] text-slate-400 mt-2 italic">* Type must be DEPT, PROC, RISK, or CTRL. ParentID is the ID of the parent element.</p>
+                      <p className="text-[10px] text-slate-400 mt-2 italic">* Type ∈ DEPT / PROC / RISK / CTRL. ParentID is the parent element ID.</p>
                     </div>
                   </div>
                 </section>
@@ -318,13 +413,13 @@ const Layout: React.FC<LayoutProps> = ({
             </div>
             <nav className="space-y-2 overflow-y-auto">
               <NavItem view={ViewState.DASHBOARD} icon={LayoutDashboard} label={t.dashboard} />
-              <NavItem view={ViewState.DATA} icon={Database} label={t.data} />
               <NavItem view={ViewState.RCSA} icon={ShieldCheck} label={t.rcsa} />
               <NavItem view={ViewState.CONTROL_TESTING} icon={CheckSquare} label={t.controlTesting} />
+              <NavItem view={ViewState.DATA} icon={Database} label={t.data} />
               <NavItem view={ViewState.KRIS} icon={Activity} label={t.kris} />
+              <NavItem view={ViewState.APPETITE} icon={Target} label={t.appetite} />
               <NavItem view={ViewState.ISSUES} icon={AlertCircle} label={t.issues} />
               <NavItem view={ViewState.SCENARIOS} icon={Sparkles} label={t.scenarios} />
-              <NavItem view={ViewState.APPETITE} icon={Target} label={t.appetite} />
               <NavItem view={ViewState.CAPITAL} icon={Calculator} label={t.capitalEngine} />
               <NavItem view={ViewState.DORA} icon={Server} label={t.dora} />
               <NavItem view={ViewState.DATA_QUALITY} icon={CheckCircle} label={t.dataQuality} />
